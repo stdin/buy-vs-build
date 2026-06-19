@@ -84,7 +84,7 @@ Adding a dependency means owning its bugs, its maintainers' availability, its se
 - **License:** clear, OSI-approved, and compatible across the whole transitive tree.
 - **Footprint & exit:** a small, justified dependency tree, and a plan to wrap it so it can be swapped.
 
-Pull the automatable signals with `node scripts/dependency-report.js <package>` (npm registry, downloads, deps.dev / OpenSSF Scorecard, OSV, provenance), then apply the full checklist in `$buy-vs-build-dependency`. Signals inform the decision; fit, design, and core-vs-context calls stay human.
+This works for any ecosystem (npm, PyPI, Go, Maven, Cargo, NuGet, RubyGems, ...) — you do the research. Pull the automatable signals with `node scripts/dependency-report.js <package> [ecosystem]` (deps.dev / OpenSSF Scorecard, OSV, releases, license, provenance; plus npm downloads and maintainers), and gather anything it does not cover yourself, then apply the full checklist in `$buy-vs-build-dependency`. Signals inform the decision; fit, design, and core-vs-context calls stay human.
 
 ## Build In-House When
 

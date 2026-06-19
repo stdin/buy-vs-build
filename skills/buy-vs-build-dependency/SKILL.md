@@ -12,6 +12,12 @@ Software Dependency Problem" (research.swtch.com/deps), and the OpenSSF "Concise
 Guide for Evaluating Open Source Software" (best.openssf.org) — plus
 bus-factor/sustainability research.
 
+**This applies to any ecosystem** — npm, PyPI, Go modules, Maven, Cargo, NuGet,
+RubyGems, or anything else. *You* do the research: gather the signals below from
+the package's registry, its source repository, deps.dev, and OSV, then judge.
+The helper automates supported registries, but the checklist — and the
+judgment — is yours regardless of language.
+
 ## Start by trying to avoid it
 
 The cheapest dependency is the one you don't add. Before researching a package,
@@ -53,16 +59,19 @@ lines you could own outright (remember left-pad).
 
 ## Pull the automatable signals first
 
-Run the helper to fetch what public, keyless APIs can tell you (npm registry,
-downloads, deps.dev / OpenSSF Scorecard, OSV vulnerabilities, npm provenance):
+For supported ecosystems (npm, PyPI, Go, Maven, Cargo, NuGet, RubyGems) the
+helper fetches what public, keyless APIs can tell you — deps.dev / OpenSSF
+Scorecard, OSV vulnerabilities, release cadence, license, and provenance, plus
+npm downloads and maintainers:
 
 ```bash
-node scripts/dependency-report.js <package-name>
+node scripts/dependency-report.js <package> [ecosystem]   # ecosystem defaults to npm
 ```
 
-It reports release cadence, maintainer count (bus-factor proxy), known
-vulnerabilities, install scripts, license, provenance, Scorecard, and adoption,
-and flags the risks. **These signals inform the decision; they don't make it.**
+For any other language, registry, or signal the helper does not cover, gather
+the equivalent yourself — the package's registry metadata, its repository
+(commits, issues, maintainers), deps.dev, OSV, and the project's docs. **These
+signals inform the decision; they don't make it.**
 
 ## What still needs human judgment
 
