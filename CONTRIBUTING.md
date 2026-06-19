@@ -69,6 +69,18 @@ sync, so you never have to hand-edit the copies.
    before merge.
 5. A maintainer will review. Keep the discussion in the PR thread.
 
+## Adding a dependency
+
+A CI check (`.github/workflows/buy-vs-build-review.yml`) flags any pull request
+that adds a dependency without a decision note. Include one in the PR
+description (or add a `docs/decisions/` ADR) and the check clears:
+
+```text
+Decision: use open-source: <package>. Tradeoff: <why it wins>. Rejected: <built-in/installed option> because <constraint>. Revisit if <trigger>.
+```
+
+The check is advisory; it never blocks a merge on its own.
+
 ## Commit messages
 
 Use clear, imperative commit subjects (e.g. "Add Zed agent instruction file").

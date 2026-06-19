@@ -2,3 +2,4 @@ node_modules/
 npm-debug.log*
 .DS_Store
 benchmarks/results/*.local.json
+buy-vs-build-comment.md
