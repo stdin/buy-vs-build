@@ -1,5 +1,14 @@
 # Buy vs Build
 
+<p align="center">
+  <a href="https://xkcd.com/3233/">
+    <img src="https://imgs.xkcd.com/comics/make_it_myself.png" width="480"
+      alt="It's not as big a loss as it looks, because now I have leftover supplies, which will help me talk myself into doing this all over again with a new project!" />
+  </a>
+  <br />
+  <sub><a href="https://xkcd.com/3233/">xkcd 3233: &ldquo;Make It Myself&rdquo;</a> &middot; <a href="https://www.explainxkcd.com/wiki/index.php/3233:_Make_It_Myself">explained</a> &middot; CC BY-NC 2.5</sub>
+</p>
+
 [![CI](https://github.com/stdin/buy-vs-build/actions/workflows/ci.yml/badge.svg)](https://github.com/stdin/buy-vs-build/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
