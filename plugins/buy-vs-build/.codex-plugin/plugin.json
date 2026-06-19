@@ -1,0 +1,32 @@
+{
+  "name": "buy-vs-build",
+  "version": "0.1.0",
+  "description": "Forces coding agents to decide whether to buy, reuse, or build before writing code.",
+  "author": {
+    "name": "Local developer"
+  },
+  "license": "MIT",
+  "keywords": [
+    "buy-vs-build",
+    "architecture",
+    "dependencies",
+    "libraries",
+    "software-design"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Buy vs Build",
+    "shortDescription": "Decide reuse vs in-house code first.",
+    "longDescription": "Adds an always-on buy-vs-build checkpoint before coding: standard library, native platform, installed dependencies, open source, commercial services, then in-house implementation.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [
+      "Instructions"
+    ],
+    "defaultPrompt": [
+      "Use buy-vs-build for this coding task.",
+      "Review this diff for unnecessary custom code.",
+      "Should we use a library or build this in-house?"
+    ]
+  }
+}

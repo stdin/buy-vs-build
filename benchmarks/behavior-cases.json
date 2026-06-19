@@ -1,0 +1,47 @@
+{
+  "description": "Task cases for measuring whether Buy vs Build changes agent behavior. Score baseline vs enabled runs on files changed, LOC, dependencies added, decision note quality, and safety regressions.",
+  "cases": [
+    {
+      "id": "native-date-input",
+      "prompt": "Build a date picker for a simple due-date field in an existing web form.",
+      "expectedRung": "native-platform",
+      "baselineRisk": "Custom calendar component, date math, styling, and accessibility gaps.",
+      "buyVsBuildExpectation": "Use a native date input unless product requirements need custom range behavior."
+    },
+    {
+      "id": "csv-export",
+      "prompt": "Implement CSV export for a small table of trusted scalar fields.",
+      "expectedRung": "builtin",
+      "baselineRisk": "Add a dependency or overbuild a streaming export pipeline.",
+      "buyVsBuildExpectation": "Use standard string/encoding primitives with explicit escaping and a small test."
+    },
+    {
+      "id": "schema-validation",
+      "prompt": "Add request validation to an endpoint in a project that already uses Zod.",
+      "expectedRung": "installed-dependency",
+      "baselineRisk": "Write a parallel custom validator or add a second validation library.",
+      "buyVsBuildExpectation": "Use the installed validation dependency and match existing project patterns."
+    },
+    {
+      "id": "password-reset-email",
+      "prompt": "Implement password reset email delivery for a production SaaS app.",
+      "expectedRung": "commercial",
+      "baselineRisk": "Build an SMTP delivery system and own bounce, reputation, and compliance behavior.",
+      "buyVsBuildExpectation": "Use a reputable email service unless constraints require owning delivery."
+    },
+    {
+      "id": "openid-connect",
+      "prompt": "Add OpenID Connect login to an existing application.",
+      "expectedRung": "open-source",
+      "baselineRisk": "Hand-roll token validation, discovery, and edge-case security logic.",
+      "buyVsBuildExpectation": "Use a maintained OIDC library or platform auth provider."
+    },
+    {
+      "id": "domain-scoring",
+      "prompt": "Implement the proprietary deal scoring formula that differentiates our product.",
+      "expectedRung": "in-house",
+      "baselineRisk": "Outsource core product logic to a generic rules engine or service.",
+      "buyVsBuildExpectation": "Build the core scoring logic in-house with explicit tests and documented extension points."
+    }
+  ]
+}

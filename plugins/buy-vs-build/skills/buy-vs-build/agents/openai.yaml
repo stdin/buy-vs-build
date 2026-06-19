@@ -1,0 +1,7 @@
+interface:
+  display_name: "Buy vs Build"
+  short_description: "Choose libraries or in-house code deliberately"
+  default_prompt: "Use $buy-vs-build to decide whether this coding task should use an existing library, platform feature, service, or in-house implementation."
+
+policy:
+  allow_implicit_invocation: true

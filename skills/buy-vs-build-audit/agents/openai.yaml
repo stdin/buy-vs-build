@@ -1,0 +1,4 @@
+interface:
+  display_name: "Buy vs Build Audit"
+  short_description: "Audit repos for ownership choices"
+  default_prompt: "Use $buy-vs-build-audit to audit this repository for avoidable custom code or dependencies."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Buy vs Build Decision"
+  short_description: "Draft concise decision notes"
+  default_prompt: "Use $buy-vs-build-decision to choose between built-in, open source, commercial, and in-house options."

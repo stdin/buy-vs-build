@@ -1,0 +1,4 @@
+interface:
+  display_name: "Buy vs Build Gain"
+  short_description: "Report benchmark impact and limits"
+  default_prompt: "Use $buy-vs-build-gain to summarize Buy vs Build benchmark cases and measured impact."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Buy vs Build Review"
+  short_description: "Review diffs for reuse decisions"
+  default_prompt: "Use $buy-vs-build-review to review this diff for build-vs-reuse mistakes."

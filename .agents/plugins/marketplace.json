@@ -1,0 +1,20 @@
+{
+  "name": "buy-vs-build",
+  "interface": {
+    "displayName": "Buy vs Build"
+  },
+  "plugins": [
+    {
+      "name": "buy-vs-build",
+      "source": {
+        "source": "local",
+        "path": "./plugins/buy-vs-build"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

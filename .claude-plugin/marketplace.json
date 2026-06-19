@@ -1,0 +1,20 @@
+{
+  "name": "buy-vs-build",
+  "description": "Buy-vs-build ruleset for AI coding agents",
+  "owner": {
+    "name": "stdin"
+  },
+  "plugins": [
+    {
+      "name": "buy-vs-build",
+      "description": "Force coding agents to check built-ins, platform features, installed dependencies, open source, and commercial options before building in-house.",
+      "version": "0.2.1",
+      "source": "./",
+      "author": {
+        "name": "stdin"
+      },
+      "category": "development",
+      "homepage": "https://github.com/stdin/buy-vs-build"
+    }
+  ]
+}

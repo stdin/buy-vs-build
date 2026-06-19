@@ -1,0 +1,18 @@
+{
+  "name": "buy-vs-build",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "node scripts/check-rule-copies.js && node tests/buy-vs-build.test.js && node tests/benchmark.test.js && node tests/agent-files.test.js && node tests/skills.test.js && node tests/opencode.test.mjs && node tests/version.test.js && node tests/marketplace.test.js && node tests/live-benchmark-harness.test.js",
+    "benchmark": "node scripts/benchmark.js",
+    "benchmark:behavior": "node scripts/run-behavior-benchmark.js",
+    "benchmark:behavior:dry": "node scripts/run-behavior-benchmark.js --dry-run",
+    "benchmark:behavior:claude": "node scripts/run-behavior-benchmark-claude.js",
+    "benchmark:behavior:claude:dry": "node scripts/run-behavior-benchmark-claude.js --dry-run"
+  },
+  "pi": {
+    "skills": [
+      "./skills"
+    ]
+  }
+}
