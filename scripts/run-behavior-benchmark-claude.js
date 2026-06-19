@@ -13,8 +13,10 @@ const casesPath = path.join(root, 'benchmarks', 'behavior-cases.json');
 const outputDir = path.join(root, 'benchmarks', 'results');
 const cases = JSON.parse(fs.readFileSync(casesPath, 'utf8')).cases;
 const { getBuyVsBuildInstructions } = require('../hooks/buy-vs-build-instructions');
+const { judgeResponse } = require('./judge');
 
 const dryRun = process.argv.includes('--dry-run');
+const useJudge = process.argv.includes('--judge');
 const model = getArgValue('--model');
 const limit = Number(getArgValue('--limit') || cases.length);
 const selectedIds = getArgValues('--case');
@@ -38,6 +40,7 @@ const result = {
   command: process.argv.slice(2),
   agent: 'claude',
   injection: 'append-system-prompt (getBuyVsBuildInstructions)',
+  scoring: useJudge && !dryRun ? 'llm-judge (claude rubric)' : 'heuristic',
   environment: {
     claude: capture('claude', ['--version']),
     model: model || '(cli default)',
@@ -49,8 +52,8 @@ const result = {
 };
 
 for (const item of runCases) {
-  const baseline = scoreResponse(item, runClaude(item, false));
-  const enabled = scoreResponse(item, runClaude(item, true));
+  const baseline = scoreOne(item, runClaude(item, false));
+  const enabled = scoreOne(item, runClaude(item, true));
   result.cases.push({ id: item.id, expectedRung: item.expectedRung, baseline, enabled });
   console.error(`${item.id}: baseline ${baseline.score}/5 -> enabled ${enabled.score}/5`);
 }
@@ -134,8 +137,14 @@ function capture(command, args) {
   return [completed.stdout, completed.stderr].filter(Boolean).join('\n').trim();
 }
 
-// --- Scoring (duplicated verbatim from run-behavior-benchmark.js to keep parity) ---
+// --- Scoring ---
 
+// Heuristic by default; --judge swaps in the rubric-based LLM judge (scripts/judge.js).
+function scoreOne(item, response) {
+  return useJudge && !dryRun ? judgeResponse(item, response) : scoreResponse(item, response);
+}
+
+// scoreResponse is duplicated verbatim from run-behavior-benchmark.js to keep parity.
 function scoreResponse(item, response) {
   const text = response.toLowerCase();
   const expectedTerms = rungTerms(item.expectedRung);
@@ -234,6 +243,7 @@ function renderMarkdown(data) {
     `- Claude: ${data.environment.claude || 'unknown'}`,
     `- Model: ${data.environment.model}`,
     `- Injection: ${data.injection}`,
+    `- Scoring: ${data.scoring}`,
     `- Node: ${data.environment.node}`,
     `- Platform: ${data.environment.platform}`,
     '',

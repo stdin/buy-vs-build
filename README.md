@@ -221,6 +221,12 @@ npm run benchmark:behavior
 npm run benchmark:behavior:claude
 ```
 
+Score recommendations with the rubric-based LLM judge instead of the keyword heuristic (more robust, calls the model once per response):
+
+```bash
+npm run benchmark:behavior:claude:judge
+```
+
 Check benchmark report generation without calling a model:
 
 ```bash
