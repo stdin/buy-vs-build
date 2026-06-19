@@ -22,19 +22,30 @@ That one pause catches a lot of expensive mistakes: custom date pickers, homemad
 
 Buy vs Build does not worship dependencies. It does not worship in-house code. It makes the agent choose deliberately.
 
-## Why This Exists
+## The problems it solves
 
-AI agents are fast. That is useful until they sprint directly into ownership cost.
+AI agents are fast — and that speed runs straight into ownership cost. Left alone, an agent will happily:
 
-They will happily:
+- **Reinvent what already exists** — a custom date picker instead of a native input, a helper instead of the standard library, OAuth by hand because the prompt said "simple login."
+- **Pick the impressive tool over the right one** — WebSockets for a one-way feed, NoSQL "for scale" on relational data, a message queue for a nightly cron job.
+- **Adopt dependencies it never vetted** — an unmaintained, single-maintainer, or vulnerable package pulled in for three lines of code (the left-pad story, on repeat).
+- **Leave no trace of why** — six months later nobody knows why a service was chosen, or when to revisit it.
 
-- Build a custom calendar instead of using a native date input.
-- Add a package for three lines of clear code.
-- Hand-roll OAuth because the prompt said "simple login."
-- Miss a library the repo already uses.
-- Avoid a commercial service, then quietly create a new operations burden.
+Each one is a bill that arrives later: a migration, an incident, an audit finding, a dependency you can't remove. Buy vs Build adds the missing engineering reflex — **reuse first, pick the option that fits, vet what you adopt, and write the call down — build only when the constraints justify owning it.**
 
-Buy vs Build adds the missing engineering reflex: **check reuse first, build only when the constraints justify owning it.**
+## What you get
+
+| It stops the agent from… | …by |
+| --- | --- |
+| Reinventing built-ins, platform features, and existing dependencies | Walking a reuse ladder before writing new code |
+| **Picking the flashy tool over the right one** | Matching the option to the requirement (SSE vs WebSockets, SQL vs NoSQL, cron vs queue) |
+| **Adopting a dependency it never researched** | Checking health, maintainers (bus factor), known vulnerabilities, license, and footprint — for **any language** |
+| Ignoring your team's real constraints | Reading a per-project `.buyvsbuild.json` (weight security, ban or prefer dependencies, mark what's core) |
+| Losing the reasoning behind a choice | Recording decisions as durable ADRs |
+| Slipping risky dependencies through review | A PR check that flags new dependencies added without a decision note |
+| Being unprovable marketing | A behavior benchmark (Codex + Claude, with an optional LLM judge) that measures the change |
+
+The three that matter most: **it picks the right tool for the job, it researches dependencies before you own them, and it works across every agent you use** — the same rule ships to Codex, Claude Code, Gemini, Cursor, GitHub Copilot, and more.
 
 ## Decide First: Core vs Context
 
@@ -63,16 +74,6 @@ Once you know what you are choosing to own, walk the reuse ladder. Stop at the f
 7. **Build in-house only when** reuse fails the real constraints, or the work is core differentiation.
 
 For non-obvious choices, the agent compares fit, total cost of ownership, security, licensing, maintenance, integration, maturity, reversibility, and exit risk.
-
-## What It Changes
-
-| Without Buy vs Build | With Buy vs Build |
-| --- | --- |
-| "I'll write a utility for this." | "Does the standard library already do this?" |
-| "Let's add a package." | "Is this smaller than the dependency?" |
-| "I'll build the integration layer." | "Is there a maintained client or platform primitive?" |
-| "Commercial tools are expensive." | "Is owning this more expensive?" |
-| "It's just auth/date parsing/CSV/OIDC." | "That phrase has a long incident history." |
 
 Example decision note:
 
@@ -206,21 +207,22 @@ Local overhead is intentionally tiny:
 - Instruction generation: about `0.009ms` average.
 - Hook process startup: about `28ms` average.
 
-Behavior benchmark cases live in `benchmarks/behavior-cases.json`. They cover common overbuild traps: date inputs, CSV export, validation, password reset email, OpenID Connect, and proprietary scoring logic.
+The 13 behavior cases in `benchmarks/behavior-cases.json` cover overbuild traps (date input, CSV export, validation, password-reset email, OIDC, proprietary scoring), right-tool traps (SSE vs WebSockets, REST vs GraphQL, SQL vs NoSQL, webhook vs polling, cron vs queue), and built-in-over-dependency (UUID, string padding).
 
 Latest live validation:
 
-- Run: [behavior-claude-2026-06-19T09-38-44-054Z.md](benchmarks/results/behavior-claude-2026-06-19T09-38-44-054Z.md)
-- Agent: Claude Code `2.1.183`, model `claude-opus-4-8[1m]`, Node `v24.12.0`, macOS arm64.
-- 7 cases, heuristic scoring: baseline `31/35`, Buy vs Build enabled `33/35`. All 7 enabled cases recommend the correct rung **and** the right option (7/7).
-- The `realtime-transport` case confirms the fit principle: with the rule on, the agent recommends **Server-Sent Events** for a one-way feed (not WebSockets) and names the distinguishing requirement in its decision note.
-- Caveat: a strong base model already scores well on the coarse keyword heuristic, so the aggregate gap is small and varies run to run. For finer signal, run with the LLM judge (`npm run benchmark:behavior:claude -- --judge`), which scores each recommendation against a rubric.
+- Run: [behavior-claude-2026-06-19T10-23-39-792Z.md](benchmarks/results/behavior-claude-2026-06-19T10-23-39-792Z.md)
+- Agent: Claude Code `2.1.183`, model `claude-haiku-4-5`, Node `v24.12.0`, macOS arm64.
+- 13 cases: baseline `33/65`, Buy vs Build enabled `55/65` (**+22**). Correct rung/option hits: `11/13 → 12/13`.
+- Every case improved or held, and the biggest lifts are the traps the rule targets — built-in UUID `0→3`, relational store `2→5`, the right-tool cases `+2` each.
+- Run on a small model on purpose: the rule's lift shows clearest there and runs stay cheap. For quality-aware scoring instead of keyword matching, add `--judge`.
 
 Run it yourself:
 
 ```bash
-npm run benchmark:behavior         # Codex CLI
-npm run benchmark:behavior:claude  # Claude CLI
+npm run benchmark:behavior              # Codex CLI
+npm run benchmark:behavior:claude       # Claude CLI (small model by default)
+npm run benchmark:behavior:claude:judge # Claude CLI, rubric-based LLM judge
 ```
 
 Important honesty note: this benchmark scores final recommendations, not code diffs, token spend, or incident reduction. It is still useful because it tests the thing this plugin promises first: does the agent make the buy-vs-build decision visible before it starts owning code? Marketing is allowed to wear shoes; it is not allowed to fly.
