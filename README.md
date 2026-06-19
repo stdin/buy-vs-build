@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://xkcd.com/3233/">
-    <img src="https://imgs.xkcd.com/comics/make_it_myself.png" width="480"
+    <img src="https://imgs.xkcd.com/comics/make_it_myself.png" width="300"
       alt="It's not as big a loss as it looks, because now I have leftover supplies, which will help me talk myself into doing this all over again with a new project!" />
   </a>
   <br />
