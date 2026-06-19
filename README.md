@@ -196,6 +196,7 @@ Skill-capable hosts can use:
 | `$buy-vs-build-audit` | Audit a repo or subsystem for ownership mistakes. |
 | `$buy-vs-build-decision` | Draft a short decision memo. |
 | `$buy-vs-build-gain` | Summarize benchmark cases and measured impact. |
+| `$buy-vs-build-adr` | Record a non-obvious decision as a durable ADR in `docs/decisions/`. |
 
 ## Benchmarks
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Buy vs Build ADR"
+  short_description: "Record decisions as ADRs"
+  default_prompt: "Use $buy-vs-build-adr to capture a buy-vs-build decision as an Architecture Decision Record in docs/decisions/."
