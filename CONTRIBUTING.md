@@ -50,8 +50,15 @@ library (Node 20+).
   `.codex-plugin/plugin.json`, `.claude-plugin/plugin.json`, and
   `gemini-extension.json` all carry the same version.
 
-If you change the rule text, update the canonical source **and** regenerate/sync all
-copies, then run `npm test` to confirm.
+If you change the rule text, a skill, or a hook, edit the canonical source (e.g.
+`rules/buy-vs-build.md`) and then run:
+
+```bash
+npm run sync   # regenerates every per-agent copy and the plugins/ mirror
+```
+
+`npm test` (and CI) runs `npm run sync:check` and fails if anything is out of
+sync, so you never have to hand-edit the copies.
 
 ## Pull request workflow
 
