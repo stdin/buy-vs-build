@@ -28,7 +28,7 @@ AI agents are fast — and that speed runs straight into ownership cost. Left al
 
 - **Reinvent what already exists** — a custom date picker instead of a native input, a helper instead of the standard library, OAuth by hand because the prompt said "simple login."
 - **Pick the impressive tool over the right one** — WebSockets for a one-way feed, NoSQL "for scale" on relational data, a message queue for a nightly cron job.
-- **Adopt dependencies it never vetted** — an unmaintained, single-maintainer, or vulnerable package pulled in for three lines of code (the left-pad story, on repeat).
+- **Adopt dependencies it never vetted** — an unmaintained, single-maintainer, or vulnerable package pulled in for three lines of code (the [left-pad story](https://en.wikipedia.org/wiki/Npm_left-pad_incident), on repeat).
 - **Leave no trace of why** — six months later nobody knows why a service was chosen, or when to revisit it.
 
 Each one is a bill that arrives later: a migration, an incident, an audit finding, a dependency you can't remove. Buy vs Build adds the missing engineering reflex — **reuse first, pick the option that fits, vet what you adopt, and write the call down — build only when the constraints justify owning it.**
