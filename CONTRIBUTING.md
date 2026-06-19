@@ -81,6 +81,21 @@ Decision: use open-source: <package>. Tradeoff: <why it wins>. Rejected: <built-
 
 The check is advisory; it never blocks a merge on its own.
 
+## Releasing
+
+Releases are automated. To cut one, open a PR that:
+
+1. Bumps the version in all four manifests (`package.json`,
+   `.codex-plugin/plugin.json`, `.claude-plugin/plugin.json`,
+   `gemini-extension.json` — `tests/version.test.js` enforces they match).
+2. Adds a matching section to `CHANGELOG.md` (e.g. `## [0.4.0] - YYYY-MM-DD`).
+
+When that PR merges to `main`, `.github/workflows/release.yml` runs `npm test`,
+tags `v<version>`, and publishes a GitHub Release using the CHANGELOG section as
+the notes (falling back to auto-generated notes if there is no section). Merges
+that don't change the version are no-ops, because the tag already exists. No
+manual tagging required.
+
 ## Commit messages
 
 Use clear, imperative commit subjects (e.g. "Add Zed agent instruction file").

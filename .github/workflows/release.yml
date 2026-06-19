@@ -1,0 +1,72 @@
+name: Release
+
+# Auto-release on merge to main. When a merged change carries a version that
+# has not been tagged yet (bump it in package.json + the other manifests in a
+# PR), this tags v<version> and publishes a GitHub Release. Merges that don't
+# change the version are no-ops because the tag already exists, so this is safe
+# to run on every push to main.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # need all tags to tell whether this version is new
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+
+      - name: Read version
+        id: ver
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check whether this version is already tagged
+        id: check
+        run: |
+          if git rev-parse "v${{ steps.ver.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "v${{ steps.ver.outputs.version }} already tagged — nothing to release."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test before releasing
+        if: steps.check.outputs.exists == 'false'
+        run: npm test
+
+      - name: Build release notes
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          if node scripts/extract-changelog.js "${{ steps.ver.outputs.version }}" > release-notes.md; then
+            echo "USE_NOTES_FILE=true" >> "$GITHUB_ENV"
+          else
+            echo "No CHANGELOG section for ${{ steps.ver.outputs.version }}; using auto-generated notes."
+            echo "USE_NOTES_FILE=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Tag and publish
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="v${{ steps.ver.outputs.version }}"
+          git tag -a "$VERSION" -m "$VERSION"
+          git push origin "$VERSION"
+          if [ "$USE_NOTES_FILE" = "true" ]; then
+            gh release create "$VERSION" --title "$VERSION" --notes-file release-notes.md
+          else
+            gh release create "$VERSION" --title "$VERSION" --generate-notes
+          fi
