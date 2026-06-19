@@ -1,6 +1,6 @@
 {
   "name": "buy-vs-build",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Forces coding agents to decide whether to buy, reuse, or build before writing code.",
   "author": {
     "name": "Local developer"

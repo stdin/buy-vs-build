@@ -1,6 +1,6 @@
 {
   "name": "buy-vs-build",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Buy-vs-build mode. Forces agents to check standard library, native platform, already-installed dependencies, open source, commercial options, then build in-house only when warranted.",
   "author": {
     "name": "Local developer"
