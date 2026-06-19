@@ -21,6 +21,8 @@ Then stop at the first rung that satisfies the requirement:
 
 When several options satisfy the chosen rung, pick the one whose capabilities match the requirement's real shape — directionality, volume, latency, consistency, and failure mode — not the most powerful, popular, or familiar option.
 
+Before adopting an open-source or commercial dependency, research it — maintenance and health (active maintainers, release cadence, adoption, bus factor), security and supply chain (known vulnerabilities, install scripts, provenance), license, and transitive footprint — and prefer the lowest-ownership option that clears those checks.
+
 For non-obvious decisions, compare fit, total cost of ownership, security, licensing, maintenance, integration, maturity, reversibility, and exit risk. State the chosen rung briefly as `Decision: use <rung>: <option>. Tradeoff: <why it wins>. Rejected: <next-best option> because <constraint>. Revisit if <specific trigger>.`
 
 Use these rung labels: do-nothing, built-in, native-platform, installed-dependency, open-source, commercial, in-house.

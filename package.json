@@ -6,10 +6,11 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node scripts/sync.js --check && node scripts/check-rule-copies.js && node tests/buy-vs-build.test.js && node tests/benchmark.test.js && node tests/agent-files.test.js && node tests/skills.test.js && node tests/opencode.test.mjs && node tests/version.test.js && node tests/marketplace.test.js && node tests/live-benchmark-harness.test.js && node tests/judge.test.js && node tests/config.test.js && node tests/adr.test.js && node tests/pr-review.test.js",
+    "test": "node scripts/sync.js --check && node scripts/check-rule-copies.js && node tests/buy-vs-build.test.js && node tests/benchmark.test.js && node tests/agent-files.test.js && node tests/skills.test.js && node tests/opencode.test.mjs && node tests/version.test.js && node tests/marketplace.test.js && node tests/live-benchmark-harness.test.js && node tests/judge.test.js && node tests/config.test.js && node tests/adr.test.js && node tests/pr-review.test.js && node tests/dependency-report.test.js",
     "sync": "node scripts/sync.js",
     "record-decision": "node scripts/record-decision.js",
     "pr-review": "node scripts/pr-review.js",
+    "dependency-report": "node scripts/dependency-report.js",
     "sync:check": "node scripts/sync.js --check",
     "benchmark": "node scripts/benchmark.js",
     "benchmark:behavior": "node scripts/run-behavior-benchmark.js",

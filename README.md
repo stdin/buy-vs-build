@@ -197,6 +197,7 @@ Skill-capable hosts can use:
 | `$buy-vs-build-decision` | Draft a short decision memo. |
 | `$buy-vs-build-gain` | Summarize benchmark cases and measured impact. |
 | `$buy-vs-build-adr` | Record a non-obvious decision as a durable ADR in `docs/decisions/`. |
+| `$buy-vs-build-dependency` | Research a package's health, security, license, and footprint before adopting it. |
 
 ## Benchmarks
 

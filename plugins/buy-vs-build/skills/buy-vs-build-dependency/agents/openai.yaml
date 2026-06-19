@@ -1,0 +1,4 @@
+interface:
+  display_name: "Buy vs Build Dependency"
+  short_description: "Research a dependency before adopting it"
+  default_prompt: "Use $buy-vs-build-dependency to research a package's fit, health, security, license, and footprint before adding it."

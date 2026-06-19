@@ -75,6 +75,17 @@ For every non-obvious choice, compare:
 
 Use current docs or package metadata when the choice depends on a library, service, license, pricing, API, or version.
 
+## Research a Dependency Before Adopting It
+
+Adding a dependency means owning its bugs, its maintainers' availability, its security posture, and its whole transitive tree. Before reaching for one, research it:
+
+- **Maintenance & health:** active commits and a recent release, responsive maintainers, and a bus factor above one (most popular open source depends on only one or two people).
+- **Security & supply chain:** no known vulnerabilities, prompt security fixes, no surprising install scripts, signed and provenanced artifacts.
+- **License:** clear, OSI-approved, and compatible across the whole transitive tree.
+- **Footprint & exit:** a small, justified dependency tree, and a plan to wrap it so it can be swapped.
+
+Pull the automatable signals with `node scripts/dependency-report.js <package>` (npm registry, downloads, deps.dev / OpenSSF Scorecard, OSV, provenance), then apply the full checklist in `$buy-vs-build-dependency`. Signals inform the decision; fit, design, and core-vs-context calls stay human.
+
 ## Build In-House When
 
 - The behavior is core product differentiation.
