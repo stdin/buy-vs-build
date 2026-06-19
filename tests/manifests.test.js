@@ -1,0 +1,114 @@
+const assert = require('node:assert/strict');
+const {
+  requirementName,
+  parsePackageJson,
+  parseRequirementsTxt,
+  parsePyproject,
+  parseGoMod,
+  parseCargo,
+  parseGemfile,
+  parseManifest,
+  isManifest,
+  dedupeDeps,
+  addedFromManifest
+} = require('../scripts/manifests');
+
+const names = (list) => list.map(d => d.name).sort();
+
+// requirement name extraction (PEP 503 normalized, markers/extras/versions stripped)
+assert.equal(requirementName("requests[security]>=2.0 ; python_version<'3.9'"), 'requests');
+assert.equal(requirementName('Flask_Foo==1.0'), 'flask-foo');
+assert.equal(requirementName('# a comment'), null);
+
+// package.json: every dependency map, npm ecosystem
+assert.deepEqual(
+  names(parsePackageJson('{"dependencies":{"a":"1"},"devDependencies":{"b":"2"},"peerDependencies":{"c":"3"}}')),
+  ['a', 'b', 'c']
+);
+assert.deepEqual(parsePackageJson('not json'), []);
+assert.equal(parsePackageJson('{"dependencies":{"zod":"3"}}')[0].ecosystem, 'npm');
+
+// requirements.txt: skip flags/comments, strip versions
+assert.deepEqual(
+  names(parseRequirementsTxt('# deps\nrequests>=2.0\nflask==2\n-r other.txt\n--hash=abc\n\nDjango')),
+  ['django', 'flask', 'requests']
+);
+
+// pyproject: PEP 621 array (single + multi-line) and Poetry tables
+const pep621 = `
+[project]
+name = "x"
+dependencies = ["requests>=2", "flask"]
+
+[project.optional-dependencies]
+test = [
+  "pytest>=7",
+  "coverage",
+]
+`;
+assert.deepEqual(names(parsePyproject(pep621)), ['coverage', 'flask', 'pytest', 'requests']);
+
+const poetry = `
+[tool.poetry.dependencies]
+python = "^3.11"
+requests = "^2.0"
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
+`;
+assert.deepEqual(names(parsePyproject(poetry)), ['pytest', 'requests']); // python is excluded
+
+// go.mod: require block + single line, indirect flagged
+const gomod = `
+module example.com/x
+go 1.21
+require (
+	github.com/foo/bar v1.2.3
+	github.com/baz/qux v0.1.0 // indirect
+)
+require github.com/solo/dep v1.0.0
+`;
+const goDeps = parseGoMod(gomod);
+assert.deepEqual(goDeps.map(d => d.name).sort(), ['github.com/baz/qux', 'github.com/foo/bar', 'github.com/solo/dep']);
+assert.equal(goDeps.find(d => d.name === 'github.com/baz/qux').indirect, true);
+assert.equal(goDeps.find(d => d.name === 'github.com/foo/bar').indirect, false);
+
+// Cargo.toml: [dependencies], dev/build sections, and [dependencies.foo] subtables
+const cargo = `
+[package]
+name = "x"
+version = "0.1.0"
+
+[dependencies]
+serde = "1.0"
+tokio = { version = "1", features = ["full"] }
+
+[dependencies.reqwest]
+version = "0.11"
+
+[dev-dependencies]
+criterion = "0.5"
+`;
+assert.deepEqual(names(parseCargo(cargo)), ['criterion', 'reqwest', 'serde', 'tokio']);
+assert.equal(parseCargo(cargo)[0].ecosystem, 'cargo');
+
+// Gemfile: gem 'name' lines
+assert.deepEqual(
+  names(parseGemfile("source 'https://rubygems.org'\ngem 'rails', '~> 7.0'\ngem \"pg\"\n# gem 'commented'")),
+  ['pg', 'rails']
+);
+
+// dispatch + diff helpers
+assert.equal(isManifest('path/to/go.mod'), true);
+assert.equal(isManifest('README.md'), false);
+assert.deepEqual(parseManifest('unknown.txt', 'whatever'), []);
+
+const added = addedFromManifest('package.json', '{"dependencies":{"a":"1"}}', '{"dependencies":{"a":"1","b":"2"}}');
+assert.deepEqual(added.map(d => d.name), ['b']);
+assert.deepEqual(addedFromManifest('package.json', '{"dependencies":{"a":"1"}}', '{"dependencies":{}}'), []);
+
+assert.deepEqual(
+  dedupeDeps([{ ecosystem: 'npm', name: 'a' }, { ecosystem: 'npm', name: 'a' }, { ecosystem: 'pypi', name: 'a' }]).length,
+  2
+);
+
+console.log('manifests tests passed');

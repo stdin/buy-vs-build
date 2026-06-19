@@ -42,7 +42,10 @@ Each one is a bill that arrives later: a migration, an incident, an audit findin
 | **Adopting a dependency it never researched** | Checking health, maintainers (bus factor), known vulnerabilities, license, and footprint — for **any language** |
 | Ignoring your team's real constraints | Reading a per-project `.buyvsbuild.json` (weight security, ban or prefer dependencies, mark what's core) |
 | Losing the reasoning behind a choice | Recording decisions as durable ADRs |
-| Slipping risky dependencies through review | A PR check that flags new dependencies added without a decision note |
+| Slipping risky dependencies through review | A PR check that flags new dependencies (npm, PyPI, Go, Cargo, RubyGems) added without a decision note — and posts their health, security, and license-compatibility signals |
+| Carrying ownership risk in dependencies you already have | An audit (`npm run audit:deps`) that ranks every dependency by ownership risk and names the lower rung you could drop to |
+| Forgetting to revisit a decision when its trigger fires | A revisit check (`npm run revisit`) that surfaces ADRs whose date- or version-based trigger has come due |
+| Mistaking a good recommendation for a good result | A post-implementation reflex: confirm the choice actually cut code, failure modes, and operating burden — a sound option can still be integrated badly |
 | Being unprovable marketing | A behavior benchmark (Codex + Claude, with an optional LLM judge) that measures the change |
 
 The three that matter most: **it picks the right tool for the job, it researches dependencies before you own them, and it works across every agent you use** — the same rule ships to Codex, Claude Code, Gemini, Cursor, GitHub Copilot, and more.
@@ -193,7 +196,8 @@ Skill-capable hosts can use:
 | Skill | Use it when |
 | --- | --- |
 | `$buy-vs-build` | Apply the core rule while coding. |
-| `$buy-vs-build-review` | Review a diff for avoidable custom code or unnecessary dependencies. |
+| `$buy-vs-build-right-tool` | Pick the option that fits the requirement's shape, not the flashy default (SSE vs WebSockets, SQL vs NoSQL, cron vs queue). |
+| `$buy-vs-build-review` | Review a diff for avoidable custom code, unnecessary dependencies, or a choice integrated badly. |
 | `$buy-vs-build-audit` | Audit a repo or subsystem for ownership mistakes. |
 | `$buy-vs-build-decision` | Draft a short decision memo. |
 | `$buy-vs-build-gain` | Summarize benchmark cases and measured impact. |
@@ -259,6 +263,19 @@ Check benchmark report generation without calling a model:
 ```bash
 npm run benchmark:behavior:dry
 npm run benchmark:behavior:claude:dry
+```
+
+Audit the dependencies a repo already owns (ranks every direct dependency by ownership risk and names the rung it could drop to; reads `package.json`, `requirements.txt`, `pyproject.toml`, `go.mod`, `Cargo.toml`, and `Gemfile`):
+
+```bash
+npm run audit:deps                 # audit the current directory
+node scripts/audit-deps.js path/to/repo
+```
+
+Surface decisions whose revisit trigger has come due (date- or dependency-version-based; the rest are flagged for a human look):
+
+```bash
+npm run revisit
 ```
 
 Check copied rule files for drift:

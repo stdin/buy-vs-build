@@ -1,0 +1,4 @@
+interface:
+  display_name: "Buy vs Build Right Tool"
+  short_description: "Pick the fitting option, not the flashy one"
+  default_prompt: "Use $buy-vs-build-right-tool to pick the option that fits the requirement's real shape (directionality, volume, latency, consistency, failure mode) instead of the most powerful or popular default."

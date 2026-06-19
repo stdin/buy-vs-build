@@ -120,6 +120,17 @@ If building in-house, name the rejected reuse option and the constraint it faile
 
 Use one of these rung labels exactly when writing the note: do-nothing, built-in, native-platform, installed-dependency, open-source, commercial, in-house.
 
+## Verify the Choice Paid Off
+
+A correct recommendation is not the same as a correct result — a model can pick Server-Sent Events and still integrate them badly. After you implement a non-obvious choice, check that it actually delivered the buy-vs-build benefit, not just that the right rung was named:
+
+- **Less code:** the reuse removed lines and surface area rather than adding a wrapper on top of work you still do by hand.
+- **Fewer failure modes:** you handled the option's real failure behavior (reconnect, retry, backpressure, idempotency) instead of inheriting new ways to break.
+- **Less to operate:** no new always-on infrastructure, dependency, or vendor surface crept in beyond what the requirement needed.
+- **Safety intact:** validation, security, privacy, accessibility, and observability still hold at the trust boundary.
+
+If the implementation didn't reduce code, failure modes, and operating burden, the decision was sound but the integration wasn't — fix the integration or revisit the choice. The decision note is the durable, reviewable record of the tradeoff, so keep it accurate as the implementation lands, and record non-obvious calls with `$buy-vs-build-adr` so they can be revisited later (`node scripts/revisit.js`).
+
 ## Common Mistakes
 
 | Mistake | Correction |
@@ -131,4 +142,5 @@ Use one of these rung labels exactly when writing the note: do-nothing, built-in
 | Choosing a library without checking license or maintenance | Verify license, activity, docs, and ecosystem fit before adding it. |
 | Walking through a one-way door at two-way-door speed | Scale scrutiny to reversibility; write an exit plan for hard-to-undo commitments. |
 | Defaulting to the most powerful or popular option | Identify the distinguishing requirement and pick the option that fits it (e.g. Server-Sent Events, not WebSockets, for a one-way feed). |
+| Declaring victory at the recommendation | Verify the implemented choice actually cut code, failure modes, and operating burden — a sound option can still be integrated badly. |
 | Treating buy-vs-build as a meeting | Make the smallest useful decision note and keep moving. |

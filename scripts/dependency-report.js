@@ -13,6 +13,8 @@
 //   - npm-only extras (downloads, maintainers, install scripts) when relevant.
 // Zero dependencies — Node 20+ `fetch` and built-ins only.
 
+const { detectProjectLicense, assessLicenseCompat, formatCompat } = require('./license-compat');
+
 const DAY = 86400000;
 
 // ecosystem -> { deps.dev system, OSV ecosystem string }
@@ -241,6 +243,15 @@ async function main() {
     process.exit(1);
   }
   console.log(formatReport(pkg, ecosystem, view));
+
+  // If this repo declares a license, check the dependency's against it.
+  const projectLicense = detectProjectLicense(process.cwd());
+  if (projectLicense && view.license) {
+    const compat = assessLicenseCompat(projectLicense, view.license);
+    if (compat.level !== 'ok') {
+      console.log(`\n## License compatibility (project: ${projectLicense})\n\n${formatCompat(compat)}`);
+    }
+  }
 }
 
 if (require.main === module) main();

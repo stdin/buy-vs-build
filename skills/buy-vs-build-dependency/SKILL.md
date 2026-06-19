@@ -73,6 +73,12 @@ the equivalent yourself — the package's registry metadata, its repository
 (commits, issues, maintainers), deps.dev, OSV, and the project's docs. **These
 signals inform the decision; they don't make it.**
 
+To review the dependencies a repo *already* owns instead of one you're about to
+add, run `node scripts/audit-deps.js` (or `npm run audit:deps`): it pulls these
+signals for every direct dependency across manifests, ranks them by ownership
+risk, checks each license against the project's, and names the lower rung you
+might drop to.
+
 ## What still needs human judgment
 
 Automated signals can't tell you whether the dependency is *core differentiation*

@@ -21,7 +21,8 @@ const copiedFiles = [
   ['skills/buy-vs-build-review/SKILL.md', 'plugins/buy-vs-build/skills/buy-vs-build-review/SKILL.md'],
   ['skills/buy-vs-build-audit/SKILL.md', 'plugins/buy-vs-build/skills/buy-vs-build-audit/SKILL.md'],
   ['skills/buy-vs-build-decision/SKILL.md', 'plugins/buy-vs-build/skills/buy-vs-build-decision/SKILL.md'],
-  ['skills/buy-vs-build-gain/SKILL.md', 'plugins/buy-vs-build/skills/buy-vs-build-gain/SKILL.md']
+  ['skills/buy-vs-build-gain/SKILL.md', 'plugins/buy-vs-build/skills/buy-vs-build-gain/SKILL.md'],
+  ['skills/buy-vs-build-right-tool/SKILL.md', 'plugins/buy-vs-build/skills/buy-vs-build-right-tool/SKILL.md']
 ];
 
 for (const [source, copy] of copiedFiles) {

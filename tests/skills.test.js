@@ -7,7 +7,8 @@ const skills = [
   'buy-vs-build-review',
   'buy-vs-build-audit',
   'buy-vs-build-decision',
-  'buy-vs-build-gain'
+  'buy-vs-build-gain',
+  'buy-vs-build-right-tool'
 ];
 
 for (const skill of skills) {

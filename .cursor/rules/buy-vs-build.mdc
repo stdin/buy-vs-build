@@ -25,6 +25,8 @@ Before adopting an open-source or commercial dependency, research it — mainten
 
 For non-obvious decisions, compare fit, total cost of ownership, security, licensing, maintenance, integration, maturity, reversibility, and exit risk. State the chosen rung briefly as `Decision: use <rung>: <option>. Tradeoff: <why it wins>. Rejected: <next-best option> because <constraint>. Revisit if <specific trigger>.`
 
+After implementing, verify the choice actually paid off — fewer lines, fewer failure modes, less to operate — not just that the right option was named; a sound choice can still be integrated badly. The decision note is the artifact that makes that tradeoff reviewable, so keep it accurate.
+
 Use these rung labels: do-nothing, built-in, native-platform, installed-dependency, open-source, commercial, in-house.
 
 Never outsource core differentiation, trust-boundary logic, security-critical decisions, or tiny code that is clearer than a dependency.
