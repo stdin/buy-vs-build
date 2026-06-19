@@ -10,13 +10,19 @@
 
 ## Release Trigger
 
-- Manual release. No CI release workflow is present.
-- Publish by creating an annotated git tag and a GitHub Release.
+- Automated. `.github/workflows/release.yml` runs on every push to `main` and,
+  when `package.json`'s version is not yet tagged, tags `v<version>` and
+  publishes a GitHub Release. Version-unchanged merges are no-ops.
+- To release: open a PR bumping the version in all four manifests and adding a
+  `CHANGELOG.md` section; merging it to `main` triggers the release.
+- Manual tagging is no longer required (and `main` is PR-protected).
 
 ## Test Gate
 
 - Local command: `npm test`
-- No CI test gate is configured.
+- CI: `.github/workflows/ci.yml` runs `npm test` (Node 20.x + 22.x) on PRs and
+  is required by branch protection; the release workflow also runs `npm test`
+  before tagging.
 
 ## Registry / Distribution
 
@@ -26,8 +32,9 @@
 
 ## Release Notes Strategy
 
-- No `CHANGELOG.md` exists.
-- Use GitHub Release notes written from the commits in the release.
+- `CHANGELOG.md` exists (Keep a Changelog format). The release workflow extracts
+  the section for the released version via `scripts/extract-changelog.js`.
+- Falls back to GitHub auto-generated notes when no section matches the version.
 
 ## CI Workflow Files
 
