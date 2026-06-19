@@ -76,7 +76,7 @@ Once you know what you are choosing to own, walk the reuse ladder. Stop at the f
 6. **Use commercial**: buy reliability, compliance, operations, support, or time when cheaper than owning it.
 7. **Build in-house only when** reuse fails the real constraints, or the work is core differentiation.
 
-For non-obvious choices, the agent compares fit, total cost of ownership, security, licensing, maintenance, integration, maturity, reversibility, and exit risk.
+For non-obvious choices, the agent compares fit, total cost of ownership, security, licensing, maintenance, integration, maturity, reversibility, and exit risk. After implementing, it verifies the choice actually paid off — fewer lines, fewer failure modes, less to operate — because a sound option can still be integrated badly. The decision note records that tradeoff so a reviewer can check it later.
 
 Example decision note:
 
@@ -229,7 +229,7 @@ npm run benchmark:behavior:claude       # Claude CLI (small model by default)
 npm run benchmark:behavior:claude:judge # Claude CLI, rubric-based LLM judge
 ```
 
-Important honesty note: this benchmark scores final recommendations, not code diffs, token spend, or incident reduction. It is still useful because it tests the thing this plugin promises first: does the agent make the buy-vs-build decision visible before it starts owning code? Marketing is allowed to wear shoes; it is not allowed to fly.
+Important honesty note: this benchmark scores final recommendations, not code diffs, token spend, or incident reduction. It is still useful because it tests the thing this plugin promises first: does the agent make the buy-vs-build decision visible before it starts owning code? The reflex to check the *implemented* outcome — did it actually cut code, failure modes, and operating burden? — now lives in the rule and the review skill, but measuring that outcome directly is future work. Marketing is allowed to wear shoes; it is not allowed to fly.
 
 ## Development
 
