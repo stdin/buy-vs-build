@@ -12,9 +12,10 @@ Make the smallest useful decision memo. The goal is clarity, not ceremony.
 1. State the requirement and constraints.
 2. Classify it: core (differentiation) or context, and commodity (stable) or novel. Reuse context and commodity work; reserve in-house for core, novel work.
 3. Walk the ladder: do nothing, built-in, native platform, installed dependency, open source, commercial, in-house.
-4. Compare fit, total cost of ownership, security, licensing, maintenance, integration, maturity, reversibility, and exit risk.
-5. Choose the lowest-ownership option that satisfies the constraints. For hard-to-reverse (one-way-door) choices, demand more scrutiny and an exit plan.
-6. Name the trigger that would justify revisiting the decision.
+4. When several options fit the rung, pick the one that matches the requirement's real shape (directionality, volume, latency, consistency, failure mode), not the most powerful, popular, or familiar one.
+5. Compare fit, total cost of ownership, security, licensing, maintenance, integration, maturity, reversibility, and exit risk.
+6. Choose the lowest-ownership option that satisfies the constraints. For hard-to-reverse (one-way-door) choices, demand more scrutiny and an exit plan.
+7. Name the trigger that would justify revisiting the decision.
 
 ## Output
 

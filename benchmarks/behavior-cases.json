@@ -42,6 +42,15 @@
       "expectedRung": "in-house",
       "baselineRisk": "Outsource core product logic to a generic rules engine or service.",
       "buyVsBuildExpectation": "Build the core scoring logic in-house with explicit tests and documented extension points."
+    },
+    {
+      "id": "realtime-transport",
+      "prompt": "Add a live updates feed that streams server-side notifications to the browser as they happen.",
+      "expectedRung": "native-platform",
+      "expectedChoice": ["sse", "server-sent events", "eventsource"],
+      "antiChoice": ["websocket"],
+      "baselineRisk": "Default to WebSockets and own a bidirectional socket server, sticky sessions, and scaling for a one-way feed.",
+      "buyVsBuildExpectation": "Use Server-Sent Events for one-way server-to-client streaming; reserve WebSockets for genuinely bidirectional needs."
     }
   ]
 }

@@ -19,6 +19,8 @@ Then stop at the first rung that satisfies the requirement:
 6. Use commercial: buy reliability, compliance, operations, support, or time when cheaper than owning it.
 7. Build in-house only when reuse fails the real constraints, or the work is core differentiation.
 
+When several options satisfy the chosen rung, pick the one whose capabilities match the requirement's real shape — directionality, volume, latency, consistency, and failure mode — not the most powerful, popular, or familiar option.
+
 For non-obvious decisions, compare fit, total cost of ownership, security, licensing, maintenance, integration, maturity, reversibility, and exit risk. State the chosen rung briefly as `Decision: use <rung>: <option>. Tradeoff: <why it wins>. Rejected: <next-best option> because <constraint>. Revisit if <specific trigger>.`
 
 Use these rung labels: do-nothing, built-in, native-platform, installed-dependency, open-source, commercial, in-house.

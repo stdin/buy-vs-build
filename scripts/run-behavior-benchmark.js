@@ -164,10 +164,17 @@ function capturePluginState() {
 function scoreResponse(item, response) {
   const text = response.toLowerCase();
   const expectedTerms = rungTerms(item.expectedRung);
+  const choiceTerms = Array.isArray(item.expectedChoice) ? item.expectedChoice.map(term => term.toLowerCase()) : null;
   const rejectedRiskTerms = riskTerms(item.baselineRisk);
   const decisionTerms = ['decision', 'tradeoff', 'rejected', 'revisit', 'because'];
 
-  const expectedRungHit = expectedTerms.some(term => text.includes(term));
+  // Fit cases name a specific right option; score whether it is recommended
+  // instead of matching a rung keyword. Otherwise fall back to rung matching.
+  const rightChoiceHit = choiceTerms ? choiceTerms.some(term => text.includes(term)) : null;
+  const wrongDefaultChosen = Array.isArray(item.antiChoice)
+    ? item.antiChoice.some(term => text.includes(term.toLowerCase())) && !rightChoiceHit
+    : null;
+  const expectedRungHit = choiceTerms ? rightChoiceHit : expectedTerms.some(term => text.includes(term));
   const overbuildAvoidanceHit = rejectedRiskTerms.some(term => text.includes(term));
   const decisionNoteScore = decisionTerms.filter(term => text.includes(term)).length;
   const safetyHit = ['security', 'privacy', 'accessibility', 'validation', 'observability', 'compliance'].some(term => text.includes(term));
@@ -184,6 +191,8 @@ function scoreResponse(item, response) {
     score,
     maxScore: 5,
     expectedRungHit,
+    rightChoiceHit,
+    wrongDefaultChosen,
     overbuildAvoidanceHit,
     decisionNoteScore,
     safetyHit,

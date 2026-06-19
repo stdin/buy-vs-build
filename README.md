@@ -176,11 +176,11 @@ Behavior benchmark cases live in `benchmarks/behavior-cases.json`. They cover co
 
 Latest live validation:
 
-- Run: [behavior-claude-2026-06-19T08-41-23-434Z.md](benchmarks/results/behavior-claude-2026-06-19T08-41-23-434Z.md)
+- Run: [behavior-claude-2026-06-19T09-38-44-054Z.md](benchmarks/results/behavior-claude-2026-06-19T09-38-44-054Z.md)
 - Agent: Claude Code `2.1.183`, model `claude-opus-4-8[1m]`, Node `v24.12.0`, macOS arm64.
-- Result: baseline `18/30`, Buy vs Build enabled `29/30`, delta `+11`.
-- Correct rung hits improved from `4/6` to `6/6`.
-- The rule is injected the way the Claude SessionStart hook injects it; baseline runs from a clean empty workspace.
+- 7 cases, heuristic scoring: baseline `31/35`, Buy vs Build enabled `33/35`. All 7 enabled cases recommend the correct rung **and** the right option (7/7).
+- The `realtime-transport` case confirms the fit principle: with the rule on, the agent recommends **Server-Sent Events** for a one-way feed (not WebSockets) and names the distinguishing requirement in its decision note.
+- Caveat: a strong base model already scores well on the coarse keyword heuristic, so the aggregate gap is small and varies run to run. For finer signal, run with the LLM judge (`npm run benchmark:behavior:claude -- --judge`), which scores each recommendation against a rubric.
 
 Run it yourself:
 

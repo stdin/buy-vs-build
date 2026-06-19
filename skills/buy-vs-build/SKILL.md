@@ -35,13 +35,36 @@ Run this before non-trivial implementation:
 
 Stop at the first rung that works. If two options work, choose the one with less long-term ownership unless it weakens correctness, safety, or user experience.
 
+## Pick the Right Option, Not the Obvious One
+
+The ladder picks an ownership level; it does not pick *which* option at that level. When several options satisfy the rung, match the option to the requirement's real shape, not its reputation. The most powerful, most popular, or most familiar choice is often wrong when a simpler one covers the actual constraints.
+
+Find the **distinguishing requirement** first, then choose the option that fits it:
+
+- **Directionality** — one-way vs bidirectional, push vs pull.
+- **Volume and latency** — messages per second, payload size, tail-latency budget.
+- **Consistency and ordering** — exactly-once vs at-least-once, ordering guarantees.
+- **Failure mode** — reconnect, backpressure, replay, idempotency.
+- **Operational fit** — what your infra, proxies, runtime, and clients already support.
+
+| Requirement | Surface-level pick | Often the right pick | Why |
+| --- | --- | --- | --- |
+| One-way server→client stream (feeds, notifications, progress, token streaming) | WebSockets | **Server-Sent Events** | Plain HTTP, auto-reconnect, simpler infra; full-duplex goes unused. |
+| Bidirectional, low-latency (chat, collaboration, multiplayer) | SSE or polling | **WebSockets** | Full-duplex is the actual requirement. |
+| "Notify me when X happens" across services | Polling loop | **Webhook / event** | Push beats burning requests on a poll. |
+| Relational data with joins and transactions | NoSQL ("for scale") | **SQL** | Relational fit and ACID matter more than hypothetical scale. |
+| One periodic job | Queue + worker + broker | **Cron / scheduled task** | The broker is ownership you do not need yet. |
+| Internal RPC between two services you own | GraphQL | **REST or gRPC** | GraphQL's flexibility is unused; it adds schema and resolver ownership. |
+
+Reserve the heavier option for when its extra capability is actually used. Name the distinguishing requirement in the decision note, and say why the more powerful or more popular option was rejected.
+
 ## Tradeoff Check
 
 For every non-obvious choice, compare:
 
 | Factor | Questions |
 | --- | --- |
-| Fit | Does it meet the actual requirement without awkward workarounds? |
+| Fit | Does it meet the actual requirement without awkward workarounds, and does its capability match the need rather than over- or under-shooting it? |
 | Ownership | Who debugs, upgrades, operates, and documents it? |
 | Total cost of ownership | What is the lifetime cost — license, usage, hosting, migration, and engineer-time — not just the sticker price? |
 | Risk | What are security, privacy, compliance, supply-chain, and vendor-lock risks? |
@@ -96,4 +119,5 @@ Use one of these rung labels exactly when writing the note: do-nothing, built-in
 | Rejecting commercial tools by default | Compare total cost of ownership, not just subscription price. |
 | Choosing a library without checking license or maintenance | Verify license, activity, docs, and ecosystem fit before adding it. |
 | Walking through a one-way door at two-way-door speed | Scale scrutiny to reversibility; write an exit plan for hard-to-undo commitments. |
+| Defaulting to the most powerful or popular option | Identify the distinguishing requirement and pick the option that fits it (e.g. Server-Sent Events, not WebSockets, for a one-way feed). |
 | Treating buy-vs-build as a meeting | Make the smallest useful decision note and keep moving. |
