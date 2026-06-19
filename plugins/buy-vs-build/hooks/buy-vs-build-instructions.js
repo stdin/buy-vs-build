@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const { getProjectConfigBlock } = require('./buy-vs-build-config');
 
 const skillPath = path.join(__dirname, '..', 'skills', 'buy-vs-build', 'SKILL.md');
 
@@ -36,7 +37,10 @@ Use these rung labels: do-nothing, built-in, native-platform, installed-dependen
 
 function getBuyVsBuildInstructions() {
   try {
-    return `BUY-VS-BUILD MODE ACTIVE\n\n${stripFrontmatter(fs.readFileSync(skillPath, 'utf8'))}`;
+    let instructions = `BUY-VS-BUILD MODE ACTIVE\n\n${stripFrontmatter(fs.readFileSync(skillPath, 'utf8'))}`;
+    const projectPolicy = getProjectConfigBlock(process.cwd());
+    if (projectPolicy) instructions += `\n\n${projectPolicy}`;
+    return instructions;
   } catch (_error) {
     return fallbackInstructions();
   }

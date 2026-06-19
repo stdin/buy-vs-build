@@ -6,7 +6,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node scripts/sync.js --check && node scripts/check-rule-copies.js && node tests/buy-vs-build.test.js && node tests/benchmark.test.js && node tests/agent-files.test.js && node tests/skills.test.js && node tests/opencode.test.mjs && node tests/version.test.js && node tests/marketplace.test.js && node tests/live-benchmark-harness.test.js && node tests/judge.test.js",
+    "test": "node scripts/sync.js --check && node scripts/check-rule-copies.js && node tests/buy-vs-build.test.js && node tests/benchmark.test.js && node tests/agent-files.test.js && node tests/skills.test.js && node tests/opencode.test.mjs && node tests/version.test.js && node tests/marketplace.test.js && node tests/live-benchmark-harness.test.js && node tests/judge.test.js && node tests/config.test.js",
     "sync": "node scripts/sync.js",
     "sync:check": "node scripts/sync.js --check",
     "benchmark": "node scripts/benchmark.js",

@@ -1,0 +1,7 @@
+{
+  "strictness": "strict",
+  "priorities": ["safety", "cross-host parity", "zero runtime dependencies"],
+  "alwaysBuild": ["the buy-vs-build rule text, ladder, and classification framework"],
+  "alwaysReuse": ["test assertions (node:assert)", "CI (GitHub Actions)", "JSON and YAML parsing"],
+  "notes": "Single source is rules/buy-vs-build.md plus the skills/ and hooks/ trees; run `npm run sync` after edits. This project ships zero runtime dependencies."
+}

@@ -96,6 +96,29 @@ This is not "do less at any cost." Buy-vs-build thinking must never cut:
 
 Cheap code that loses customer data is not cheap. It is just a delayed invoice.
 
+## Tune It Per Project
+
+Drop a `.buyvsbuild.json` at your repo root to adapt the rule to your real
+constraints. The SessionStart hook injects it alongside the rule, so the agent
+sees your policy on every turn.
+
+```json
+{
+  "strictness": "strict",
+  "priorities": ["security", "speed"],
+  "preferredDependencies": ["zod", "date-fns"],
+  "bannedDependencies": ["moment"],
+  "alwaysBuild": ["our deal-scoring formula"],
+  "alwaysReuse": ["auth", "email delivery", "payments"],
+  "notes": "We are SOC2; weight compliance and observability heavily."
+}
+```
+
+Every field is optional. A regulated shop can weight security and force reuse of
+auth; a startup can prioritize speed; a team can pin its standardized
+dependencies and ban the ones it has been burned by. Malformed config is ignored,
+never fatal.
+
 ## Supported Agent Surfaces
 
 This repo ships the same rule through the files each host already knows how to read.
