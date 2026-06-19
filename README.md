@@ -1,5 +1,8 @@
 # Buy vs Build
 
+[![CI](https://github.com/stdin/buy-vs-build/actions/workflows/ci.yml/badge.svg)](https://github.com/stdin/buy-vs-build/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 **Stop your coding agent from reinventing the invoice.**
 
 Buy vs Build is an always-on ruleset for AI coding agents. Before the agent writes code, it has to ask:

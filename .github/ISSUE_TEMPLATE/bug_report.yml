@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a problem with the rule, a host integration, hooks, or tests.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to file a bug. Please fill out the details below.
+  - type: input
+    id: host
+    attributes:
+      label: Host / agent
+      description: Which integration is affected (Codex, Claude Code, Gemini, Cursor, Copilot, Windsurf, Cline, Kiro, OpenCode, OpenClaw, or generic)?
+      placeholder: e.g. Claude Code
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected to happen instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The repo version or installed plugin version (e.g. 0.1.0).
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues for duplicates.
+          required: true
+        - label: I ran `npm test` and can share any relevant output.
+          required: false
