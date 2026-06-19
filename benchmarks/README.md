@@ -4,14 +4,13 @@
 
 Latest recorded live run:
 
-- Report: `results/behavior-claude-2026-06-19T09-38-44-054Z.md`
-- Agent: Claude Code `2.1.183`, model `claude-opus-4-8[1m]`
-- Buy vs Build version: `0.1.0`
-- Cases: `7` (adds `realtime-transport`, an SSE-vs-WebSockets fit case)
-- Baseline score: `31/35`
-- Enabled score: `33/35`
-- Correct rung/option hits: `7/7` enabled
-- Note: scores use the keyword heuristic. A strong base model already scores high on it, so the aggregate gap is small; run with `--judge` for rubric-based scoring that captures recommendation quality, not just keywords.
+- Report: `results/behavior-claude-2026-06-19T10-23-39-792Z.md`
+- Agent: Claude Code `2.1.183`, model `claude-haiku-4-5`
+- Cases: `13` (overbuild traps + right-tool traps + built-in-over-dependency)
+- Baseline score: `33/65`
+- Enabled score: `55/65` (delta `+22`)
+- Correct rung/option hits: `11/13 -> 12/13`
+- The benchmark runs on a small model on purpose: the rule's lift is clearest there and runs stay cheap. The default model is `haiku`; override with `--model`. For quality-aware scoring instead of keyword matching, add `--judge`.
 
 The Codex harness (`npm run benchmark:behavior`) and the Claude harness (`npm run benchmark:behavior:claude`) run the same cases, prompts, and scoring; they differ only in which agent answers and how the rule is injected.
 

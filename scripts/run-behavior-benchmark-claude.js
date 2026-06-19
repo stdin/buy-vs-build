@@ -17,7 +17,9 @@ const { judgeResponse } = require('./judge');
 
 const dryRun = process.argv.includes('--dry-run');
 const useJudge = process.argv.includes('--judge');
-const model = getArgValue('--model');
+// Default to a small, cheap model; the rule's lift is clearest on a smaller model
+// and benchmark runs stay inexpensive. Override with --model.
+const model = getArgValue('--model') || 'haiku';
 const limit = Number(getArgValue('--limit') || cases.length);
 const selectedIds = getArgValues('--case');
 const runId = new Date().toISOString().replace(/[:.]/g, '-');

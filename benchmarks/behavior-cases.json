@@ -51,6 +51,60 @@
       "antiChoice": ["websocket"],
       "baselineRisk": "Default to WebSockets and own a bidirectional socket server, sticky sessions, and scaling for a one-way feed.",
       "buyVsBuildExpectation": "Use Server-Sent Events for one-way server-to-client streaming; reserve WebSockets for genuinely bidirectional needs."
+    },
+    {
+      "id": "internal-rpc",
+      "prompt": "Build the API layer for two internal services we own that call each other.",
+      "expectedRung": "native-platform",
+      "expectedChoice": ["rest", "grpc", "http"],
+      "antiChoice": ["graphql"],
+      "baselineRisk": "Adopt GraphQL with a schema and resolvers for simple fixed internal RPC.",
+      "buyVsBuildExpectation": "Use plain REST or gRPC for fixed internal RPC; GraphQL's flexibility adds schema and resolver ownership it does not need."
+    },
+    {
+      "id": "relational-store",
+      "prompt": "Implement storage for orders, customers, and line items with joins and transactional updates; pick a datastore.",
+      "expectedRung": "native-platform",
+      "expectedChoice": ["sql", "postgres", "relational", "rdbms"],
+      "antiChoice": ["nosql", "mongo", "dynamodb"],
+      "baselineRisk": "Reach for a NoSQL document store 'for scale' despite relational, transactional data.",
+      "buyVsBuildExpectation": "Use a relational SQL database; the data is relational and needs ACID transactions, not hypothetical scale."
+    },
+    {
+      "id": "cross-service-notify",
+      "prompt": "Add a way for service A to react when service B finishes processing a job.",
+      "expectedRung": "native-platform",
+      "expectedChoice": ["webhook", "event", "pub/sub", "pubsub", "callback"],
+      "antiChoice": ["polling", "poll loop"],
+      "baselineRisk": "Add a polling loop that repeatedly asks service B whether the job is done.",
+      "buyVsBuildExpectation": "Use a webhook or event/pub-sub push; polling burns requests and adds latency for a push-shaped problem."
+    },
+    {
+      "id": "periodic-job",
+      "prompt": "Run a cleanup task once every night. Implement the scheduling.",
+      "expectedRung": "native-platform",
+      "expectedChoice": ["cron", "scheduled task", "scheduler"],
+      "antiChoice": ["queue", "broker", "rabbitmq", "kafka", "celery"],
+      "baselineRisk": "Stand up a message queue, broker, and worker for a single nightly job.",
+      "buyVsBuildExpectation": "Use a cron or platform scheduled task; a broker and workers are ownership the requirement does not justify."
+    },
+    {
+      "id": "uuid-generation",
+      "prompt": "Add unique-identifier generation for new records in a Node service.",
+      "expectedRung": "builtin",
+      "expectedChoice": ["randomuuid", "crypto.randomuuid", "built-in", "standard library"],
+      "antiChoice": ["uuid library", "install uuid", "the uuid package"],
+      "baselineRisk": "Add the uuid dependency when the runtime already provides crypto.randomUUID().",
+      "buyVsBuildExpectation": "Use the built-in crypto.randomUUID(); no dependency is needed."
+    },
+    {
+      "id": "string-padding",
+      "prompt": "Implement left-padding a number with zeros to a fixed width for display in a Node app.",
+      "expectedRung": "builtin",
+      "expectedChoice": ["padstart", "built-in", "standard library", "string.prototype"],
+      "antiChoice": ["left-pad", "leftpad", "dependency"],
+      "baselineRisk": "Add a left-pad style dependency for a one-line built-in.",
+      "buyVsBuildExpectation": "Use String.prototype.padStart(); it is built in and a dependency here is the left-pad mistake."
     }
   ]
 }

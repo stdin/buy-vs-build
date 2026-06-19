@@ -1,0 +1,389 @@
+{
+  "runId": "2026-06-19T10-23-39-792Z",
+  "createdAt": "2026-06-19T10:23:39.793Z",
+  "command": [],
+  "agent": "claude",
+  "injection": "append-system-prompt (getBuyVsBuildInstructions)",
+  "scoring": "heuristic",
+  "environment": {
+    "claude": "2.1.183 (Claude Code)",
+    "model": "haiku",
+    "node": "v24.12.0",
+    "platform": "darwin arm64"
+  },
+  "cases": [
+    {
+      "id": "native-date-input",
+      "expectedRung": "native-platform",
+      "baseline": {
+        "score": 4,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": null,
+        "wrongDefaultChosen": null,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 1,
+        "safetyHit": true,
+        "dependencyRiskHit": true,
+        "response": "For a simple due-date field, I'd recommend **native HTML5 `<input type=\"date\">` as the default**, with **Flatpickr as a fallback if you need better styling or older browser support**.\n\n**The tradeoff:**\n- **Native input**: Zero dependencies, instant, handles keyboard/mobile well — but limited styling control and older IE support isn't there.\n- **Flatpickr**: Small library (~4kb), highly customizable UI/accessibility, good mobile UX — adds a dependency but minimal overhead.\n\n**Path:** Start with native input. If stakeholders want custom styling or you're targeting older browsers, swap in Flatpickr. Both integrate identically into the form (just swap the input type/add a wrapper).\n\nBefore implementing, check: What framework is the form built in (React/Vue/vanilla)? Any existing date libraries in the project? Browser support needs?"
+      },
+      "enabled": {
+        "score": 5,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": null,
+        "wrongDefaultChosen": null,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 4,
+        "safetyHit": true,
+        "dependencyRiskHit": true,
+        "response": "**Decision: use built-in: `<input type=\"date\">`.** Tradeoff: zero setup/dependencies vs. limited styling control.\n\n**Why:** This is context (not core differentiation) and commodity (standardized, well-understood). The requirement is explicitly \"simple\"—a single due date. The native browser control covers it:\n- No dependency, no bundle bloat\n- Built-in validation and keyboard support\n- Accessible out-of-box\n- Works across modern browsers\n\n**Rejected:** open-source date picker (react-datepicker, etc.) because it adds maintenance overhead and bundle size for a feature the platform already provides. Easier to add later if design needs custom styling or advanced features (date ranges, disabled dates).\n\n**Reversibility:** Two-way door. If you later need styled calendars or complex date logic, wrapping the native input or swapping to a library is straightforward."
+      }
+    },
+    {
+      "id": "csv-export",
+      "expectedRung": "builtin",
+      "baseline": {
+        "score": 1,
+        "maxScore": 5,
+        "expectedRungHit": false,
+        "rightChoiceHit": null,
+        "wrongDefaultChosen": null,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 1,
+        "safetyHit": false,
+        "dependencyRiskHit": false,
+        "response": "For a small table of trusted scalar fields, **generate CSV on the frontend via a click handler—string concatenation or a lightweight library like `papaparse` if you need escaping safety.**\n\n**Tradeoff**: Frontend generation is instant and requires no backend changes, but for larger tables or if field count grows significantly, moving to the backend (POST → streaming download) would be better for memory and flexibility.\n\nShould I proceed with implementation, or do you want to scope differently (e.g., which fields to export, button placement, download vs. clipboard)?"
+      },
+      "enabled": {
+        "score": 3,
+        "maxScore": 5,
+        "expectedRungHit": false,
+        "rightChoiceHit": null,
+        "wrongDefaultChosen": null,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 5,
+        "safetyHit": false,
+        "dependencyRiskHit": true,
+        "response": "**Decision: in-house. Tradeoff: simplicity over robustness. Rejected: open-source library because trusted scalar fields eliminate edge cases (escaped quotes, embedded newlines, commas in values) that justify dependency overhead.**\n\n**Recommendation:**\n\nBuild a ~15-line helper—loop the rows, join scalar fields with commas, wrap in Blob, trigger download. For small trusted datasets, manual CSV generation is clearer than adding a library.\n\n```\n// pseudo-code shape\nfunction exportCSV(rows, headers) {\n  const csv = [headers.join(','), ...rows.map(r => headers.map(h => r[h]).join(','))].join('\\n')\n  const blob = new Blob([csv], {type: 'text/csv'})\n  const url = URL.createObjectURL(blob)\n  const a = document.createElement('a')\n  a.href = url\n  a.download = 'export.csv'\n  a.click()\n}\n```\n\n**Tradeoffs:**\n- **Pro:** zero dependencies, ~15 lines, no escaping needed (trusted data), obvious on code review.\n- **Con:** no quoted-field handling if data later contains commas/newlines; if that becomes real, swap to `papaparse` (1 line of code).\n- **Revisit if:** table grows to 10k+ rows (perf), or untrusted user data appears (need escaping)."
+      }
+    },
+    {
+      "id": "schema-validation",
+      "expectedRung": "installed-dependency",
+      "baseline": {
+        "score": 3,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": null,
+        "wrongDefaultChosen": null,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 1,
+        "safetyHit": true,
+        "dependencyRiskHit": false,
+        "response": "I need more context to give a precise recommendation. A few clarifying questions:\n\n1. **What framework?** (Express, Next.js, Fastify, etc.) — this shapes how validation integrates.\n2. **What's being validated?** (request body, query params, path params, headers, or all?)\n3. **How is Zod currently wired?** (middleware, within handlers, dedicated validation layer?)\n4. **Single endpoint or establishing a pattern** for the whole project?\n\n**General shape if you just want a recommendation without details:**\n\nSince the project already uses Zod, the lightest path is **inline schema validation in the handler** — define a Zod schema for the request shape, call `.parse()` or `.safeParse()` on incoming data, and let any `ZodError` bubble to your error handler. This reuses what's already there and avoids a new abstraction.\n\n**Tradeoff:** Inline validation is simple and keeps schemas close to logic, but repeated across handlers. If you need centralized validation (middleware-based), that's more code upfront but scales better across many endpoints.\n\nWhat does the project structure look like?"
+      },
+      "enabled": {
+        "score": 5,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": null,
+        "wrongDefaultChosen": null,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 2,
+        "safetyHit": true,
+        "dependencyRiskHit": true,
+        "response": "**Decision: use installed-dependency: Zod.**\n\nSince your project already uses Zod, the path is clear: define a schema for the request shape and apply it in the endpoint.\n\n**Implementation approach:**\n- Create a Zod schema for the request body/params/query\n- Validate early in the handler (or via middleware if you have a pattern for that)\n- Return structured errors on validation failure\n- No new dependency, no duplication\n\n**Tradeoff:** None worth noting—Zod is already the cost you're paying, and it solves this without alternatives. The only choice left is whether to validate at the handler level or wrap it in middleware; handler-level is simpler unless you're repeating the same schema across multiple endpoints (then middleware/decorator might be worth extracting).\n\nDo you want to proceed with implementation, or do you need to see the existing Zod usage patterns in the codebase first?"
+      }
+    },
+    {
+      "id": "password-reset-email",
+      "expectedRung": "commercial",
+      "baseline": {
+        "score": 3,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": null,
+        "wrongDefaultChosen": null,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 1,
+        "safetyHit": false,
+        "dependencyRiskHit": true,
+        "response": "## Password Reset Email Delivery - Implementation Recommendation\n\n**Recommended approach:** Use a third-party email service (SendGrid, AWS SES, Mailgun) with an async job queue. Generate secure, time-limited tokens; send via background worker; implement retry logic and monitoring.\n\n**Key tradeoff:** Third-party services cost money and add external dependency, but eliminate SMTP infrastructure, deliverability headaches, and bounce handling. Self-hosted SMTP is cheaper but requires IP reputation management and lands in spam more often—risky for critical auth flows.\n\n**What to clarify before starting:**\n- Do you have an email service already integrated, or starting fresh?\n- Is an async queue (Bull, Celery, RQ) already in place, or build for sync first then upgrade?\n- How strict are token expiry and resend limits (e.g., 1 token per 15m, valid 24h)?"
+      },
+      "enabled": {
+        "score": 5,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": null,
+        "wrongDefaultChosen": null,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 2,
+        "safetyHit": true,
+        "dependencyRiskHit": true,
+        "response": "**Decision: Use commercial email service (SendGrid, Mailgun, Postmark, or Resend).**\n\n**Why:** Email delivery is a commodity operational challenge, not core product differentiation. Production reliability requires vendor reputation, compliance infrastructure (DKIM, SPF, DMARC, bounce handling), and 24/7 monitoring — all solved by a commercial provider. Building or self-hosting incurs hidden costs: deliverability expertise, ISP reputation, SMTP security, compliance auditing, incident response, and scaling operations.\n\n**Tradeoff:** Vendor lock-in + monthly cost vs. zero operational overhead and production-grade deliverability. For a SaaS app, the operational win dominates.\n\n**Implementation shape:**\n1. Choose based on your stack: Resend (modern, SaaS-native), SendGrid (battle-tested, broad), Mailgun (flexible), or Postmark (transactional focus).\n2. Store reset tokens in the database with expiry (5–15 min); link emails to user records, not tokens, to invalidate on reuse.\n3. Template the email in the service's dashboard; call its API from your backend on request.\n4. Log delivery events (sent, bounced, opened) for observability.\n\n**Avoid:** Self-hosted SMTP, Firebase/Auth0 email (poor customization), or in-house mail infra."
+      }
+    },
+    {
+      "id": "openid-connect",
+      "expectedRung": "open-source",
+      "baseline": {
+        "score": 4,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": null,
+        "wrongDefaultChosen": null,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 2,
+        "safetyHit": false,
+        "dependencyRiskHit": true,
+        "response": "# OpenID Connect Login Implementation\n\n## Recommended Approach\n\nWrap OIDC integration with a **middleware/SDK layer** that bridges to your existing auth system, rather than ripping out current auth wholesale. This minimizes blast radius and lets existing sessions coexist with OIDC logins.\n\n**Flow sketch:**\n1. Add OIDC provider integration (OpenID library for your stack: passport.js, python-authlib, google-auth-library, etc.)\n2. Exchange OIDC token for your internal JWT/session\n3. Unify user lookup so OIDC identity maps to existing user table\n4. Support both auth paths during rollout\n\n## Key Tradeoffs\n\n| Factor | Coexist Approach | Replace Approach |\n|--------|------------------|------------------|\n| **Implementation time** | 2-3 weeks | 4-6 weeks |\n| **Risk to existing users** | Low (isolated path) | High (migration required) |\n| **Complexity** | Moderate (dual auth) | High (state migration) |\n| **User migration path** | Gradual, optional | Forced or complex |\n| **Debugging effort** | Higher (two flows) | Lower (one flow) |\n\n## Decision Points (Needed to Refine)\n\n- **Which OIDC provider?** (Google, Auth0, custom — each has different libraries/costs)\n- **Existing auth model?** (Session cookies, JWT, OAuth2 — affects how you bridge)\n- **Tech stack?** (Node/Express, Python/Django, Go, etc. — determines library choices)\n- **Replace or coexist?** (If coexist, timeline for phasing out old auth matters)\n- **User count?** (Determines migration lift)\n\n**Recommendation:** Plan for coexistence first. It's lower risk, faster to market, and you can migrate existing users gradually. If you want a more detailed plan, I can scope that after understanding your stack and existing auth system."
+      },
+      "enabled": {
+        "score": 5,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": null,
+        "wrongDefaultChosen": null,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 2,
+        "safetyHit": true,
+        "dependencyRiskHit": true,
+        "response": "**Recommendation: Use commercial OIDC provider + lightweight open-source client library.**\n\n**Classification:**\n- Core or context? **Context** — authentication is expected, not a differentiator.\n- Commodity or novel? **Commodity** — OIDC is a standardized protocol, well-established and stable.\n- **Decision:** Reuse aggressively.\n\n**Recommended path (in order of preference):**\n\n1. **Commercial OIDC provider + client library** (Auth0, Keycloak, Okta, or cloud-native like AWS Cognito, Azure AD)\n   - Provider handles token issuance, refresh, revocation, compliance\n   - Use a lightweight client library (`passport-oidc`, `authlib`, Spring Security, etc.) to integrate\n   - **Tradeoff:** Vendor dependency, but eliminates security auditing, compliance burden, and key rotation ops\n\n2. **Self-hosted Keycloak + client library** (if vendor lock-in is a blocker)\n   - Keycloak is battle-tested, open-source, and mature\n   - Still requires operations (database, TLS, updates)\n   - **Tradeoff:** Ownership cost vs. lower vendor risk\n\n3. **Build in-house only if:**\n   - Using a language/framework with no OIDC library (rare)\n   - Compliance or data-residency rules forbid external providers\n   - Token format must deviate from OIDC spec (usually a smell)\n\n**Questions to sharpen the choice:**\n- Is this app an OIDC *client* (using external login) or *provider* (issuing tokens)?\n- What's your tech stack?\n- Do you need federation (multiple identity providers), or single provider?\n- Any compliance constraints (HIPAA, SOC2, data residency)?\n\n**Do not build the auth provider from scratch.** That's a one-way door with serious security implications."
+      }
+    },
+    {
+      "id": "domain-scoring",
+      "expectedRung": "in-house",
+      "baseline": {
+        "score": 3,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": null,
+        "wrongDefaultChosen": null,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 1,
+        "safetyHit": false,
+        "dependencyRiskHit": true,
+        "response": "I need a few specifics to give you a focused recommendation. Quick clarifications:\n\n1. **Input data**: What drives the score? (deal size, customer segment, win probability, margin potential, strategic fit, other?)\n2. **Frequency & latency**: Score on-demand at sales time, or pre-computed in batch?\n3. **Explainability vs. secrecy**: Do reps need to understand *why* a deal scores a 7/10, or is opaque fine?\n\n**That said, here's the default tradeoff:**\n\n**Recommend: Rules-based formula (not ML)**\n- **Advantage**: Fast to ship, easy to tune when sales feedback arrives, competitors can't reverse-engineer by feeding it data, reps understand the logic and trust rankings\n- **Cost**: Less accurate than a learned model, requires domain knowledge to weight inputs correctly, needs manual updates as your business changes\n\n**Alternative if you have historical deal data**: ML model (logistic regression or random forest)\n- **Advantage**: Higher accuracy, finds non-obvious patterns automatically\n- **Cost**: Slower to iterate, can feel like a black box to your sales team, requires ongoing training data quality, more complex to deploy\n\n**Key question**: Is this a competitive moat (keep it simple, proprietary), or do you need accuracy to drive revenue (may warrant ML)? If the latter, start rules-based, collect calibration data for 2–3 months, then evaluate ML.\n\nWhat's the primary use case — early opportunity filtering or deal-close prediction?"
+      },
+      "enabled": {
+        "score": 4,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": null,
+        "wrongDefaultChosen": null,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 1,
+        "safetyHit": true,
+        "dependencyRiskHit": true,
+        "response": "**Classification**: Core + Novel → **Build in-house.** This is your differentiation; you must own it.\n\n**Recommendation**: Build the scoring formula as proprietary code, not a third-party integration.\n\n**Tradeoffs**:\n- **Win**: Full control over the algorithm, can evolve it as competitive strategy shifts, no vendor lock-in or licensing costs.\n- **Cost**: Requires specification (what inputs? what weighting?), testing against real deal data, and ongoing maintenance as business rules change.\n- **Risk**: The implementation must be correct—bugs here affect pricing/revenue directly. Plan validation against historical deals before shipping.\n\n**Before you code**: \n1. **Do you have a specification?** (input variables, weighting logic, edge cases) If not, clarify that first—ambiguous requirements will cause rework.\n2. **How will you validate it?** (backtest against closed deals? A/B test with sales?) Poor validation is the main failure mode.\n3. **Where does it live?** (API service, batch job, embedded in frontend?) Deployment shape affects architecture.\n\nIf you have a formula spec ready and a validation strategy, proceed. If not, plan that before implementation."
+      }
+    },
+    {
+      "id": "realtime-transport",
+      "expectedRung": "native-platform",
+      "baseline": {
+        "score": 4,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": true,
+        "wrongDefaultChosen": false,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 2,
+        "safetyHit": false,
+        "dependencyRiskHit": true,
+        "response": "# Live Updates Feed: Implementation Options\n\n**Top recommendation: Server-Sent Events (SSE)** — simpler setup, sufficient for most notification streams.\n\n## The Two Main Approaches\n\n### 1. **Server-Sent Events (SSE)** — Recommended for notifications\n- **How**: Persistent HTTP connection, server pushes JSON/text to browser\n- **Setup**: One endpoint (`/api/notifications/stream`), browser uses `EventSource`\n- **Latency**: ~100-500ms typical\n- **Tradeoffs**: \n  - ✅ Simple (native browser API, no library needed)\n  - ✅ Works through firewalls/proxies (plain HTTP)\n  - ✅ Auto-reconnect built-in\n  - ❌ One-way only (server → browser)\n  - ❌ Older IE not supported (acceptable for most modern apps)\n\n### 2. **WebSockets** — If you need bidirectional or lower latency\n- **How**: Full-duplex TCP-like connection over HTTP upgrade\n- **Setup**: More complex (needs library like Socket.IO or ws)\n- **Latency**: ~10-50ms typical\n- **Tradeoffs**:\n  - ✅ True real-time, bidirectional\n  - ✅ Lower latency\n  - ❌ More moving parts (library dependency, state management)\n  - ❌ Harder to scale (persistent connections per client)\n  - ❌ Proxy/firewall issues possible\n\n## Quick Decision Tree\n- **\"Notifications only, simple\"** → SSE\n- **\"Bidirectional chat-like messages\"** → WebSockets  \n- **\"High volume + many clients\"** → Evaluate connection limits; SSE easier to scale horizontally\n- **\"Already using Socket.IO/similar\"** → Stick with that\n\n## Critical Implementation Detail\nWhichever you pick, decide: are notifications **user-specific** (auth token + `/api/notifications/stream?userId=X`) or **broadcast** (everyone gets the same)? This determines your subscription model.\n\nWhat's the notification pattern—broadcast events, per-user messages, or a mix?"
+      },
+      "enabled": {
+        "score": 4,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": true,
+        "wrongDefaultChosen": false,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 2,
+        "safetyHit": false,
+        "dependencyRiskHit": true,
+        "response": "**Decision: Use native-platform: Server-Sent Events (SSE).**\n\n**Why:** This is a one-way server→client stream (the commodity pattern for notifications). SSE gives you:\n- Built into the web platform (EventSource API on the client)\n- Plain HTTP—no WebSocket upgrade, simpler browser/proxy/load-balancer handling\n- Auto-reconnect in the browser (no custom retry logic)\n- Trivial integration in any backend framework\n\n**Tradeoff:** WebSockets are more powerful but overkill here since you don't need bidirectional messaging. SSE is a two-way door; upgrade later if you discover you need full duplex (rare for notification feeds).\n\n**Implementation sketch:**\n- Server: Send `Content-Type: text/event-stream` and stream `data: <notification>\\n\\n`\n- Client: `const es = new EventSource('/api/notifications'); es.onmessage = ...`\n- No dependency needed if your framework supports it natively (Express, Rails, Django all do)\n\nIf you need cross-browser or older-browser support, a minimal polyfill exists, but that's a rarity today."
+      }
+    },
+    {
+      "id": "internal-rpc",
+      "expectedRung": "native-platform",
+      "baseline": {
+        "score": 2,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": true,
+        "wrongDefaultChosen": false,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 0,
+        "safetyHit": false,
+        "dependencyRiskHit": false,
+        "response": "I need a few specifics to make a targeted recommendation:\n\n1. **Scale & latency**: Is this high-throughput/low-latency (REST/gRPC), or can it tolerate async delays (message queue)?\n2. **Coupling tolerance**: Do services need real-time responses, or can they work with eventual consistency?\n3. **Tech stack**: What languages/frameworks are these services built in?\n4. **Failure modes**: What happens if service B is down when service A calls it?\n\n**Quick framework** while you gather those:\n\n- **Sync HTTP/REST** → simplest, tight coupling, requires both services healthy. Good if services are co-hosted and failure means user-visible errors.\n- **gRPC** → faster than REST, strong typing, operational complexity. Better for high-frequency calls or polyglot services.\n- **Async (message queue)** → loosest coupling, eventual consistency, adds infrastructure complexity. Good if you can tolerate delays and need resilience.\n\nWhat's the bottleneck or pain point you're trying to avoid with this design?"
+      },
+      "enabled": {
+        "score": 4,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": true,
+        "wrongDefaultChosen": false,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 4,
+        "safetyHit": false,
+        "dependencyRiskHit": true,
+        "response": "**Decision: use native-platform: REST/HTTP. Tradeoff: simplicity and zero new dependencies over binary efficiency.**\n\n**Why:**\n- Two internal services with basic request-response are a commodity RPC need\n- REST + HTTP is built into every language/framework (no new dependency)\n- Operational simplicity beats hypothetical performance gains for internal calls at typical scale\n- Easy to debug, monitor, and test with standard tools\n\n**Rejected:** gRPC (binary efficiency unused for internal calls unless you're at scale with strict latency budgets; adds proto schemas and deployment complexity). GraphQL (flexible query patterns unused for fixed internal contracts; schema ownership overhead).\n\n**Revisit if:**\n- Throughput requirements exceed REST's capability (measure first)\n- You need streaming or true bidirectional calls (WebSocket, not gRPC)\n- Service definitions change frequently enough that generated stubs save effort\n\n**Question before finalizing:** Do these services have existing framework HTTP/REST patterns already in place, or are they starting fresh? That shapes whether to inherit existing conventions vs. standardize on one pattern."
+      }
+    },
+    {
+      "id": "relational-store",
+      "expectedRung": "native-platform",
+      "baseline": {
+        "score": 2,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": true,
+        "wrongDefaultChosen": false,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 1,
+        "safetyHit": false,
+        "dependencyRiskHit": false,
+        "response": "**Recommendation: PostgreSQL with a SQL ORM (e.g., SQLAlchemy, Prisma, TypeORM)**\n\nThis is a relational data model—customers, orders, and line items with cross-table joins and foreign keys. SQL is the natural fit here: you get ACID transactions, referential integrity, and mature tooling. PostgreSQL scales well and has excellent JSON support if you need semi-structured fields later.\n\n**Tradeoff:** SQL requires upfront schema design and migrations, but that's a feature for this use case—enforcing data shape prevents corruption. The alternative (document DB like MongoDB) would make joins painful and transactional consistency harder without real benefit.\n\nIf this is a high-scale system where you need extreme horizontality or the schema will change frequently, consider a hybrid (PostgreSQL + document columns) rather than switching datastores. Does this fit your constraints, or do you have specific scale/latency requirements that would change the recommendation?"
+      },
+      "enabled": {
+        "score": 5,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": true,
+        "wrongDefaultChosen": false,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 4,
+        "safetyHit": true,
+        "dependencyRiskHit": true,
+        "response": "**Decision: Use open-source (PostgreSQL) or native-platform (managed database). Tradeoff: commodity problem, standardized solution. Rejected: custom storage because joins + transactions are textbook SQL — the requirement maps directly to relational database fundamentals.**\n\n## Rationale\n\n**Classification**: Orders, customers, and line items are context (not core differentiation). Joins and transactions are commodity problems; SQL exists for exactly this.\n\n**Why SQL (not NoSQL)**:\n- Joins are built-in; app-side joins are slower and error-prone\n- Transactions guarantee consistency across related entities (order ↔ items ↔ customer updates atomic)\n- Schema with constraints (FK, NOT NULL, UNIQUE) prevents invalid states\n\n## Recommendation\n\n**PostgreSQL** (self-hosted) or **managed PostgreSQL** (RDS/Cloud SQL/Azure Database):\n- **PostgreSQL** if you're infra-first or cost-sensitive\n- **RDS/Cloud SQL** if you're already cloud-hosted (ops + compliance + backups managed)\n- **SQLite** only for local dev/testing; it breaks under concurrent writes\n\n## Why not others\n- MySQL: works, but PostgreSQL has better modern features (JSON, window functions, arrays)\n- NoSQL: can't do joins efficiently; cross-entity transactions are hard/lossy\n- Build in-house: PostgreSQL took decades to harden; you'd waste 1000s of hours\n\n## Exit path\nSQL databases are *portable* one-way doors. Schema is locked in, but data moves between systems with migration scripts. Plan for schema versioning + migrations (Alembic, Flyway) from day one.\n\n**Start with**: PostgreSQL locally or RDS if cloud-native. Use an ORM (SQLAlchemy, TypeORM, Prisma) to keep schema in sync with code."
+      }
+    },
+    {
+      "id": "cross-service-notify",
+      "expectedRung": "native-platform",
+      "baseline": {
+        "score": 2,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": true,
+        "wrongDefaultChosen": false,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 0,
+        "safetyHit": false,
+        "dependencyRiskHit": false,
+        "response": "## Implementation Recommendation\n\n**Best fit: Async event-driven via message queue or webhook**\n\n### Top three approaches:\n\n1. **Event Bus/Queue** (Kafka, RabbitMQ, AWS SQS, Redis streams)\n   - ✅ Decouples services; scales to N consumers; durable (survives service downtime); built-in retry\n   - ❌ Adds infrastructure; more setup complexity\n   - **Best for:** Multiple services react to the same event, or high reliability is critical\n\n2. **HTTP Webhook/Callback** (Service B calls Service A directly)\n   - ✅ Minimal infrastructure; simple to implement; lowest latency\n   - ❌ Tight coupling; unreliable (Service A must be up and reachable); retry logic on you\n   - **Best for:** Two-service interaction; Service A is always running\n\n3. **Polling** (Service A checks Service B periodically)\n   - ✅ No callback infrastructure needed\n   - ❌ Highest latency; wasted queries; tight coupling via polling endpoint\n   - **Best for:** Legacy constraints or very infrequent jobs\n\n**My recommendation:** Start with **webhooks** if it's just two services and you want simplicity. Move to an **event bus** if you expect scale, other services to react, or need reliability guarantees.\n\nWhat's your current infrastructure (bare servers, Kubernetes, cloud platform)? That shapes which message queue fits best."
+      },
+      "enabled": {
+        "score": 4,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": true,
+        "wrongDefaultChosen": false,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 2,
+        "safetyHit": false,
+        "dependencyRiskHit": true,
+        "response": "# Implementation Recommendation: Service A Reacting to Service B Job Completion\n\n## Classification\n**Context + Commodity** → Reuse, don't build.\n\n## Decision Gate\nThe key distinguishing requirement: **one-way async notification with what reliability model?**\n\n## Recommended Option (in order of fit)\n\n**1. Native platform event system** (if on cloud: AWS EventBridge, GCP Pub/Sub, Azure Event Grid)\n- B publishes a \"job.completed\" event; A subscribes\n- **Tradeoff**: Vendor lock-in vs operational simplicity, built-in retry/DLQ, managed scaling\n- **Best if**: Same cloud provider, operational overhead is a constraint\n\n**2. Open-source message queue** (Kafka, RabbitMQ, Redis Streams)\n- B publishes to a topic/queue; A pulls/listens\n- **Tradeoff**: Self-hosted burden vs full portability and control, handles failures naturally\n- **Best if**: Cross-cloud, hybrid infra, or already deployed\n\n**3. Webhook (HTTP POST callback)**\n- B calls A's HTTP endpoint when done\n- **Tradeoff**: Simplest to prototype, but you own retry logic, idempotency, and timeout handling\n- **Best if**: A and B can reach each other over HTTP, latency <seconds, low volume\n\n**4. Polling** (A periodically checks B)\n- **Avoid unless**: Nothing else is available; wastes requests and has high latency\n\n## What to Decide First\n- **Tech stack**: Are you on a single cloud, hybrid, or self-hosted?\n- **Latency budget**: Seconds vs minutes vs eventually consistent?\n- **Scale**: Jobs/sec and whether B can handle callbacks?\n- **Failure mode**: Can A miss a notification, or must all be retried?\n\n**If you're unsure, webhook is the safe start** — it's reversible and adds two HTTP endpoints (B calls A, optionally A confirms receipt). Scale to a queue when polling becomes a bottleneck."
+      }
+    },
+    {
+      "id": "periodic-job",
+      "expectedRung": "native-platform",
+      "baseline": {
+        "score": 3,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": true,
+        "wrongDefaultChosen": false,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 0,
+        "safetyHit": false,
+        "dependencyRiskHit": true,
+        "response": "I need to clarify your environment to recommend the right approach:\n\n**Platform?**\n- Running on a Linux/Mac server (cron is simplest)\n- Running on Windows (Task Scheduler or app-level)\n- Running in the cloud (Lambda, Cloud Functions, or app-level)\n- Running within an existing Node/Python/Go app (app-level scheduler)\n\n**Quick recommendations by scenario:**\n\n| Approach | Pros | Cons |\n|----------|------|------|\n| **Cron job** | Simple, zero config, OS handles it | Linux/Mac only, logs scattered, no app context |\n| **App-level scheduler** (node-cron, APScheduler, etc.) | Runs with app, easy logging, portable | Requires app running 24/7, app restart loses schedule |\n| **systemd timer** | Modern, journald logging, reliable | Linux only, learning curve |\n| **Cloud scheduler** | Reliable, managed, works anywhere | Cost, external dependency |\n\n**Most common pick:** If this is part of an existing app → **app-level scheduler**. If standalone → **cron** (Unix) or **Task Scheduler** (Windows).\n\nWhich environment are you working in?"
+      },
+      "enabled": {
+        "score": 4,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": true,
+        "wrongDefaultChosen": false,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 2,
+        "safetyHit": false,
+        "dependencyRiskHit": true,
+        "response": "**Decision: use native-platform (cron) for simple case; escalate to open-source (job queue) if persistence/retries needed.**\n\n**Tradeoff:** \n\n- **Cron (native)**: Zero runtime dependencies, proven, simple. Downside: config lives outside code, requires Unix/Linux, not version-controlled.  \n  **Use when:** cleanup is idempotent, runs on traditional servers/containers.\n\n- **Node job queue** (Bull + Redis, or Agenda + MongoDB): Code-versioned scheduling, retry logic, persistent queue. Downside: adds infrastructure dependency, operational overhead.  \n  **Use when:** cleanup must survive restarts, needs retries, or runs in orchestrated environments (Kubernetes).\n\n- **Cloud scheduler** (AWS EventBridge, GCP Cloud Scheduler): Fully managed, reliable. Downside: vendor lock-in, pay-per-invocation, external dependency.  \n  **Use when:** cloud-native deployment, high reliability required.\n\n**Recommended path:**\n1. What's your deployment target? (self-hosted, Docker, AWS, GCP, etc.)\n2. Is the cleanup **idempotent** (safe to run multiple times if it partially succeeds)?  \n3. Does it **need to retry** if it fails?\n\nAnswer those and I can give you the exact implementation (cron script, node-cron setup, or queue configuration)."
+      }
+    },
+    {
+      "id": "uuid-generation",
+      "expectedRung": "builtin",
+      "baseline": {
+        "score": 0,
+        "maxScore": 5,
+        "expectedRungHit": false,
+        "rightChoiceHit": false,
+        "wrongDefaultChosen": true,
+        "overbuildAvoidanceHit": false,
+        "decisionNoteScore": 1,
+        "safetyHit": false,
+        "dependencyRiskHit": false,
+        "response": "**Recommendation: Use UUID v7 (time-sortable) or Nanoid (lightweight alternative)**\n\n**UUID v7 if:**\n- Database performance matters (naturally sortable, better index behavior)\n- You need standard format compatibility\n- Records are queried chronologically\n- Use `npm install uuid`; call `v7()` on create\n\n**Nanoid if:**\n- Payload size is critical (21 chars vs 36)\n- You want simplicity over sortability\n- Collision risk is acceptable (vanishingly low for Node services)\n- Use `npm install nanoid`; call `nanoid()` on create\n\n**Key tradeoff:** UUID v7 gives you chronological ordering \"free\" (better for range queries, pagination), but adds ~15 bytes per record. Nanoid saves space but doesn't sort by creation time (need explicit timestamp if that matters).\n\n**Before choosing:** Check if your Node service is clustered/distributed (favors UUID v7 for collision resistance) or has specific database constraints (some DBs prefer sequential-ish IDs). Also check if you're replacing an existing ID scheme to maintain compatibility.\n\nWhat's the context—is this for a new model, replacing auto-increment, or distributed records?"
+      },
+      "enabled": {
+        "score": 3,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": true,
+        "wrongDefaultChosen": false,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 3,
+        "safetyHit": false,
+        "dependencyRiskHit": false,
+        "response": "**Decision: use built-in: `crypto.randomUUID()`.** \n\n**Tradeoff:** UUID v4 (RFC 4122) is standardized and sufficient for most record-tracking use cases. Zero runtime dependencies, built into Node ≥15.7.0.\n\n**Next-best option:** Use `uuid` package (v7 variant) or `nanoid` if you need **sortable IDs** for better database index performance—UUID v4 sorts randomly, which degrades B-tree efficiency on large datasets.\n\n**Distinguishing requirements to clarify:**\n- Do IDs need to be sortable/time-ordered (database index performance)?\n- What's the collision risk tolerance (v4 is ~1 in 5 billion for practical scale)?\n- Are there format constraints (length, characters, encoding)?\n\nRevisit if: ID generation becomes a profiled bottleneck, or sortability becomes critical for query performance."
+      }
+    },
+    {
+      "id": "string-padding",
+      "expectedRung": "builtin",
+      "baseline": {
+        "score": 2,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": true,
+        "wrongDefaultChosen": false,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 1,
+        "safetyHit": false,
+        "dependencyRiskHit": false,
+        "response": "**Recommendation: Use `String.padStart()`**\n\nThis is the simplest and most readable approach. Convert the number to a string and use the native `padStart()` method:\n\n```javascript\nconst padded = number.toString().padStart(width, '0');\n```\n\n**Main tradeoff:** Built-in method (zero dependencies, standard ES2017) vs. slightly more verbose than a hypothetical custom helper, but the tradeoff strongly favors the standard approach—no need to reinvent this wheel.\n\nIf you're padding many values in a loop, wrap it in a small utility function for readability. If you already use lodash, `_.padStart()` works identically. That's it."
+      },
+      "enabled": {
+        "score": 4,
+        "maxScore": 5,
+        "expectedRungHit": true,
+        "rightChoiceHit": true,
+        "wrongDefaultChosen": false,
+        "overbuildAvoidanceHit": true,
+        "decisionNoteScore": 3,
+        "safetyHit": false,
+        "dependencyRiskHit": true,
+        "response": "**Decision: use built-in: `String.padStart()`**\n\nJavaScript's `String.padStart(width, '0')` handles this directly — convert the number to a string and pad it. No dependency, no custom code.\n\n```javascript\nconst padded = String(myNumber).padStart(5, '0');  // e.g., 42 → '00042'\n```\n\n**Tradeoff:** None worth mentioning. It's a commodity operation (number formatting), part of the standard library since ES2017, and widely supported in Node. Custom code or an external library adds unnecessary ownership.\n\n**Rejected:** Any wrapper or dependency would be overengineering a one-liner."
+      }
+    }
+  ],
+  "summary": {
+    "cases": 13,
+    "baselineScore": 33,
+    "enabledScore": 55,
+    "maxScore": 65,
+    "scoreDelta": 22,
+    "baselineExpectedRungHits": 11,
+    "enabledExpectedRungHits": 12
+  }
+}
