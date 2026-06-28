@@ -4,16 +4,18 @@
 // commit, or a new docs/decisions/ ADR — and (2) post the cheaply-automatable
 // supply-chain signals (deps.dev / OSV / OpenSSF Scorecard) plus a license-
 // compatibility check, so reviewers get evidence, not just a nag. Works across
-// npm, PyPI, Go, Cargo, and RubyGems manifests, not just package.json. Advice
-// that is not enforced erodes; this moves the rule to the trust boundary (CI).
+// npm, PyPI, Go, Maven, Cargo, NuGet, and RubyGems manifests, not just
+// package.json. Advice that is not enforced erodes; this moves the rule to the
+// trust boundary (CI).
 // Pure helpers are exported for tests; main() does the git/GitHub/network
 // plumbing when run in Actions or locally. Zero dependencies.
 const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 
-const { MANIFESTS, basename, addedFromManifest, dedupeDeps } = require('./manifests');
+const { isManifest, addedFromManifest, dedupeDeps } = require('./manifests');
 const { gatherSignals, summarize, SYSTEMS } = require('./dependency-report');
 const { detectProjectLicense, assessLicenseCompat, formatCompat } = require('./license-compat');
+const { loadProjectConfig } = require('../hooks/buy-vs-build-config');
 
 const MARKER = '<!-- buy-vs-build-review -->';
 const RUNGS = 'do-nothing|built-in|native-platform|installed-dependency|open-source|commercial|in-house';
@@ -52,6 +54,10 @@ function depList(added) {
   return added.map(dep => `\`${depLabel(dep)}\``).join(', ');
 }
 
+function changedManifestPaths(changed) {
+  return changed.filter(isManifest);
+}
+
 // A report has hard flags worth surfacing even when a decision note exists.
 function hasHardFlag(report) {
   if (!report) return false;
@@ -63,7 +69,8 @@ function buildSignalsSection(reports) {
   const lines = ['**What the automated check sees** (deps.dev / OSV / OpenSSF — signals, not a verdict):', ''];
   for (const report of reports) {
     if (!report.found) {
-      lines.push(`- \`${report.label}\` — not resolved automatically; review by hand.`);
+      const reason = report.reason ? ` (${report.reason})` : '';
+      lines.push(`- \`${report.label}\` — not resolved automatically${reason}; review by hand.`);
       continue;
     }
     const bits = [];
@@ -74,8 +81,13 @@ function buildSignalsSection(reports) {
   return lines.join('\n');
 }
 
+function isStrictMode(config) {
+  return Boolean(config && config.strictness === 'strict');
+}
+
 function buildComment(added, opts = {}) {
   const reports = opts.reports || [];
+  const enforced = Boolean(opts.enforced);
   const lines = [
     MARKER,
     '### 🧭 Buy vs Build check',
@@ -97,7 +109,9 @@ function buildComment(added, opts = {}) {
     'Decision: use open-source: <package>. Tradeoff: <why it wins>. Rejected: <built-in/installed option> because <constraint>. Revisit if <trigger>.',
     '```',
     '',
-    '_Add the note and this check clears. It is advisory — it never blocks the merge by itself._'
+    enforced
+      ? '_Add the note and this strict-mode check clears._'
+      : '_Add the note and this check clears. It is advisory — it never blocks the merge by itself._'
   );
   return lines.join('\n');
 }
@@ -144,7 +158,7 @@ async function mapLimit(items, limit, fn) {
 
 function collectAddedDeps(base, head) {
   const changed = git(['diff', '--name-only', base, head]).split('\n').filter(Boolean);
-  const manifestPaths = changed.filter(file => MANIFESTS[basename(file)]);
+  const manifestPaths = changedManifestPaths(changed);
   // package.json at the repo root is always worth checking, even via a fallback.
   if (!manifestPaths.includes('package.json') && fs.existsSync('package.json')) manifestPaths.push('package.json');
 
@@ -163,13 +177,13 @@ async function gatherReports(added, projectLicense) {
   const reports = await mapLimit(slice, 5, async (dep) => {
     const label = depLabel(dep);
     try {
-      const { found, view } = await gatherSignals(dep.name, dep.ecosystem);
-      if (!found) return { label, found: false };
+      const { found, view, reason } = await gatherSignals(dep.name, dep.ecosystem);
+      if (!found) return { label, found: false, reason };
       const flags = summarize(view).flags;
       const compat = projectLicense && view.license ? assessLicenseCompat(projectLicense, view.license) : null;
       return { label, found: true, flags, compat };
-    } catch (_error) {
-      return { label, found: false };
+    } catch (error) {
+      return { label, found: false, reason: error && error.message ? error.message : 'lookup failed' };
     }
   });
   if (added.length > SIGNAL_CAP) {
@@ -188,20 +202,24 @@ async function main() {
   const addedFiles = git(['diff', '--name-only', '--diff-filter=A', base, head]).split('\n').filter(Boolean);
   const hasEvidence = hasDecisionEvidence({ prBody: process.env.PR_BODY || '', commitMessages, addedFiles });
   const needsNote = added.length > 0 && !hasEvidence;
+  const strict = isStrictMode(loadProjectConfig(process.cwd()));
 
   if (!added.length) {
     console.log('No new dependencies in this PR.');
-    if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, 'deps_added=false\nneeds_note=false\n');
+    if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `deps_added=false\nneeds_note=false\nstrict=${strict}\n`);
     return;
   }
 
   const reports = process.env.SKIP_SIGNALS ? [] : await gatherReports(added, detectProjectLicense(process.cwd()));
-  const body = needsNote ? buildComment(added, { reports }) : buildResolvedComment(added, { reports });
+  const body = needsNote ? buildComment(added, { reports, enforced: strict }) : buildResolvedComment(added, { reports });
   fs.writeFileSync(COMMENT_FILE, body + '\n');
   console.log(body);
 
   if (process.env.GITHUB_OUTPUT) {
-    fs.appendFileSync(process.env.GITHUB_OUTPUT, `deps_added=true\nneeds_note=${needsNote}\n`);
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `deps_added=true\nneeds_note=${needsNote}\nstrict=${strict}\n`);
+  }
+  if (needsNote && strict) {
+    process.exitCode = 1;
   }
 }
 
@@ -211,12 +229,15 @@ module.exports = {
   parseDeps,
   addedDependencies,
   hasDecisionEvidence,
+  isStrictMode,
   depLabel,
   hasHardFlag,
   buildSignalsSection,
   buildComment,
   buildResolvedComment,
   analyze,
+  changedManifestPaths,
+  collectAddedDeps,
   MARKER,
   COMMENT_FILE
 };

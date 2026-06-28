@@ -25,7 +25,7 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: node scripts/pr-review.js
       - name: Upsert PR comment
-        if: steps.analyze.outputs.deps_added == 'true'
+        if: always() && steps.analyze.outputs.deps_added == 'true'
         uses: actions/github-script@v8
         with:
           script: |

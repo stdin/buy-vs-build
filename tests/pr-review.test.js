@@ -2,12 +2,14 @@ const assert = require('node:assert/strict');
 const {
   addedDependencies,
   hasDecisionEvidence,
+  isStrictMode,
   depLabel,
   hasHardFlag,
   buildSignalsSection,
   buildComment,
   buildResolvedComment,
   analyze,
+  changedManifestPaths,
   MARKER
 } = require('../scripts/pr-review');
 
@@ -46,6 +48,7 @@ const warn = buildComment(['left-pad']);
 assert.ok(warn.includes(MARKER));
 assert.match(warn, /Buy vs Build check/);
 assert.match(warn, /left-pad/);
+assert.match(buildComment(['left-pad'], { enforced: true }), /strict-mode check clears/);
 const resolved = buildResolvedComment(['zod']);
 assert.ok(resolved.includes(MARKER));
 assert.match(resolved, /includes a decision note/);
@@ -54,6 +57,7 @@ assert.match(resolved, /includes a decision note/);
 assert.equal(depLabel('left-pad'), 'left-pad');
 assert.equal(depLabel({ ecosystem: 'npm', name: 'zod' }), 'zod');
 assert.equal(depLabel({ ecosystem: 'pypi', name: 'requests' }), 'requests (pypi)');
+assert.deepEqual(changedManifestPaths(['src/App.csproj', 'pom.xml', 'README.md']).sort(), ['pom.xml', 'src/App.csproj']);
 
 // hasHardFlag: vulns / deprecation / license warn count; soft signals don't.
 assert.equal(hasHardFlag({ flags: ['2 known vulnerabilities (…)'] }), true);
@@ -61,17 +65,19 @@ assert.equal(hasHardFlag({ flags: ['Deprecated by its author: x'] }), true);
 assert.equal(hasHardFlag({ compat: { level: 'warn', reason: 'GPL into MIT' } }), true);
 assert.equal(hasHardFlag({ flags: ['No release in 500 days — may be unmaintained.'] }), false);
 assert.equal(hasHardFlag({ found: false }), false);
+assert.equal(isStrictMode({ strictness: 'strict' }), true);
+assert.equal(isStrictMode({ strictness: 'advisory' }), false);
 
 // Signals section renders flags + license compat, and a clean dep.
 const section = buildSignalsSection([
   { label: 'requests (pypi)', found: true, flags: ['2 known vulnerabilities (OSV-1).'], compat: { level: 'warn', reason: 'GPL-3.0 is strong copyleft…' } },
   { label: 'zod', found: true, flags: [], compat: null },
-  { label: 'mystery', found: false }
+  { label: 'mystery', found: false, reason: 'deps.dev package lookup: package not found' }
 ]);
 assert.match(section, /requests \(pypi\).*known vulnerabilit/s);
 assert.match(section, /🚫 License:/);
 assert.match(section, /`zod` — ✅ no automated red flags/);
-assert.match(section, /`mystery` — not resolved automatically/);
+assert.match(section, /`mystery` — not resolved automatically \(deps\.dev package lookup: package not found\)/);
 
 // Comment with reports embeds the signals section; multi-ecosystem labels render.
 const enriched = buildComment([{ ecosystem: 'pypi', name: 'requests' }], {
