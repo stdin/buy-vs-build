@@ -14,6 +14,10 @@ Latest recorded live run:
 
 The Codex harness (`npm run benchmark:behavior`) and the Claude harness (`npm run benchmark:behavior:claude`) run the same cases, prompts, and scoring; they differ only in which agent answers and how the rule is injected.
 
+`npm run benchmark:behavior:gate` runs the Codex harness in dry mode with score
+thresholds and no result files. It is included in `npm test` as a regression
+check for rule and scoring changes.
+
 Recommended scoring for each baseline and enabled run:
 
 - Files changed

@@ -42,7 +42,7 @@ Each one is a bill that arrives later: a migration, an incident, an audit findin
 | **Adopting a dependency it never researched** | Checking health, maintainers (bus factor), known vulnerabilities, license, and footprint — for **any language** |
 | Ignoring your team's real constraints | Reading a per-project `.buyvsbuild.json` (weight security, ban or prefer dependencies, mark what's core) |
 | Losing the reasoning behind a choice | Recording decisions as durable ADRs |
-| Slipping risky dependencies through review | A PR check that flags new dependencies (npm, PyPI, Go, Cargo, RubyGems) added without a decision note — and posts their health, security, and license-compatibility signals |
+| Slipping risky dependencies through review | A PR check that flags new dependencies (npm, PyPI, Go, Maven, Cargo, NuGet, RubyGems) added without a decision note — and posts their health, security, and license-compatibility signals. In `strict` mode, missing dependency notes fail CI. |
 | Carrying ownership risk in dependencies you already have | An audit (`npm run audit:deps`) that ranks every dependency by ownership risk and names the lower rung you could drop to |
 | Forgetting to revisit a decision when its trigger fires | A revisit check (`npm run revisit`) that surfaces ADRs whose date- or version-based trigger has come due |
 | Mistaking a good recommendation for a good result | A post-implementation reflex: confirm the choice actually cut code, failure modes, and operating burden — a sound option can still be integrated badly |
@@ -227,6 +227,7 @@ Run it yourself:
 npm run benchmark:behavior              # Codex CLI
 npm run benchmark:behavior:claude       # Claude CLI (small model by default)
 npm run benchmark:behavior:claude:judge # Claude CLI, rubric-based LLM judge
+npm run benchmark:behavior:gate         # Dry regression gate used by npm test
 ```
 
 Important honesty note: this benchmark scores final recommendations, not code diffs, token spend, or incident reduction. It is still useful because it tests the thing this plugin promises first: does the agent make the buy-vs-build decision visible before it starts owning code? The reflex to check the *implemented* outcome — did it actually cut code, failure modes, and operating burden? — now lives in the rule and the review skill, but measuring that outcome directly is future work. Marketing is allowed to wear shoes; it is not allowed to fly.
@@ -238,6 +239,9 @@ Run the test suite:
 ```bash
 npm test
 ```
+
+`npm test` also runs a dry behavior benchmark gate so rule changes cannot silently
+drop below the expected score threshold.
 
 Run the local overhead benchmark:
 
@@ -263,9 +267,10 @@ Check benchmark report generation without calling a model:
 ```bash
 npm run benchmark:behavior:dry
 npm run benchmark:behavior:claude:dry
+npm run benchmark:behavior:gate
 ```
 
-Audit the dependencies a repo already owns (ranks every direct dependency by ownership risk and names the rung it could drop to; reads `package.json`, `requirements.txt`, `pyproject.toml`, `go.mod`, `Cargo.toml`, and `Gemfile`):
+Audit the dependencies a repo already owns (ranks every direct dependency by ownership risk and names the rung it could drop to; reads `package.json`, `package-lock.json`, `requirements.txt`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `Gemfile`, `pom.xml`, and NuGet project files):
 
 ```bash
 npm run audit:deps                 # audit the current directory

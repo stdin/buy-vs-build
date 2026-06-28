@@ -4,6 +4,29 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Dry behavior benchmark gate (`npm run benchmark:behavior:gate`) with score
+  thresholds, included in `npm test`.
+- Dependency manifest extraction for root npm lockfiles, Maven `pom.xml`, NuGet
+  project files, editable Python requirements, and Cargo package aliases.
+
+### Changed
+
+- Strict `.buyvsbuild.json` mode now fails the PR dependency review when new
+  dependencies lack a decision note, while still posting the explanatory PR
+  comment.
+- Tests now use Node's built-in test discovery instead of a hand-maintained
+  test-file list.
+- Dependency report lookup failures now distinguish missing packages, rate
+  limits, service outages, and network failures.
+- PR review and dependency audit now use the shared manifest detector, so dynamic
+  manifest types such as NuGet project files are actually included.
+- Maven manifest extraction now ignores `dependencyManagement` entries so version
+  constraints are not mistaken for directly owned dependencies.
+
 ## [0.3.0] - 2026-06-19
 
 ### Added
