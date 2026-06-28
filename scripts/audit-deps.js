@@ -11,7 +11,7 @@
 // a heuristic prioritizer; the human still judges fit. Pure helpers are exported
 // for tests; main() does the fs/network plumbing. Zero dependencies.
 
-const { parseManifest, dedupeDeps, MANIFESTS } = require('./manifests');
+const { parseManifest, dedupeDeps, isManifest } = require('./manifests');
 const { gatherSignals, summarize, SYSTEMS } = require('./dependency-report');
 const { detectProjectLicense, assessLicenseCompat } = require('./license-compat');
 
@@ -101,7 +101,11 @@ function enumerateRepoDeps(target, includeIndirect) {
     files = [target];
   } else {
     const dir = target || process.cwd();
-    files = Object.keys(MANIFESTS).map(name => path.join(dir, name)).filter(file => fs.existsSync(file));
+    try {
+      files = fs.readdirSync(dir).map(name => path.join(dir, name)).filter(isManifest);
+    } catch (_error) {
+      files = [];
+    }
   }
   const deps = [];
   for (const file of files) {
@@ -151,7 +155,7 @@ async function main() {
 
   const deps = enumerateRepoDeps(target, includeIndirect);
   if (!deps.length) {
-    console.error('No supported dependency manifests found (package.json, requirements.txt, pyproject.toml, go.mod, Cargo.toml, Gemfile).');
+    console.error('No supported dependency manifests found (package.json, package-lock.json, requirements.txt, pyproject.toml, go.mod, Cargo.toml, Gemfile, pom.xml, or NuGet project files).');
     process.exit(1);
   }
 

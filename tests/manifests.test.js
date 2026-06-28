@@ -2,11 +2,14 @@ const assert = require('node:assert/strict');
 const {
   requirementName,
   parsePackageJson,
+  parsePackageLock,
   parseRequirementsTxt,
   parsePyproject,
   parseGoMod,
   parseCargo,
   parseGemfile,
+  parsePomXml,
+  parseDotnetProject,
   parseManifest,
   isManifest,
   dedupeDeps,
@@ -27,11 +30,15 @@ assert.deepEqual(
 );
 assert.deepEqual(parsePackageJson('not json'), []);
 assert.equal(parsePackageJson('{"dependencies":{"zod":"3"}}')[0].ecosystem, 'npm');
+assert.deepEqual(
+  names(parsePackageLock('{"lockfileVersion":3,"packages":{"":{"dependencies":{"a":"1"},"devDependencies":{"b":"2"}},"node_modules/a":{}}}')),
+  ['a', 'b']
+);
 
 // requirements.txt: skip flags/comments, strip versions
 assert.deepEqual(
-  names(parseRequirementsTxt('# deps\nrequests>=2.0\nflask==2\n-r other.txt\n--hash=abc\n\nDjango')),
-  ['django', 'flask', 'requests']
+  names(parseRequirementsTxt('# deps\nrequests>=2.0\nflask==2\n-r other.txt\n--hash=abc\n-e git+https://example.invalid/repo.git#egg=Editable_Pkg\n\nDjango')),
+  ['django', 'editable-pkg', 'flask', 'requests']
 );
 
 // pyproject: PEP 621 array (single + multi-line) and Poetry tables
@@ -81,6 +88,7 @@ version = "0.1.0"
 [dependencies]
 serde = "1.0"
 tokio = { version = "1", features = ["full"] }
+json = { package = "serde_json", version = "1" }
 
 [dependencies.reqwest]
 version = "0.11"
@@ -88,7 +96,7 @@ version = "0.11"
 [dev-dependencies]
 criterion = "0.5"
 `;
-assert.deepEqual(names(parseCargo(cargo)), ['criterion', 'reqwest', 'serde', 'tokio']);
+assert.deepEqual(names(parseCargo(cargo)), ['criterion', 'reqwest', 'serde', 'serde_json', 'tokio']);
 assert.equal(parseCargo(cargo)[0].ecosystem, 'cargo');
 
 // Gemfile: gem 'name' lines
@@ -97,8 +105,30 @@ assert.deepEqual(
   ['pg', 'rails']
 );
 
+// Maven / NuGet: name-only extraction from XML manifests.
+assert.deepEqual(
+  names(parsePomXml(`
+    <project>
+      <dependencyManagement>
+        <dependencies>
+          <dependency><groupId>org.managed</groupId><artifactId>not-direct</artifactId></dependency>
+        </dependencies>
+      </dependencyManagement>
+      <dependencies>
+        <dependency><groupId>org.example</groupId><artifactId>demo-core</artifactId></dependency>
+      </dependencies>
+    </project>
+  `)),
+  ['org.example:demo-core']
+);
+assert.deepEqual(
+  names(parseDotnetProject('<Project><ItemGroup><PackageReference Include="Newtonsoft.Json" Version="13" /><PackageReference Update="Serilog" Version="3" /></ItemGroup></Project>')),
+  ['Newtonsoft.Json', 'Serilog']
+);
+
 // dispatch + diff helpers
 assert.equal(isManifest('path/to/go.mod'), true);
+assert.equal(isManifest('src/App.csproj'), true);
 assert.equal(isManifest('README.md'), false);
 assert.deepEqual(parseManifest('unknown.txt', 'whatever'), []);
 

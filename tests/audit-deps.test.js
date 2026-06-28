@@ -64,7 +64,8 @@ assert.match(report, /\$buy-vs-build-dependency/);
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bvb-audit-'));
 fs.writeFileSync(path.join(dir, 'package.json'), '{"dependencies":{"zod":"3"},"devDependencies":{"esbuild":"0.2"}}');
 fs.writeFileSync(path.join(dir, 'requirements.txt'), 'requests>=2\nflask');
+fs.writeFileSync(path.join(dir, 'App.csproj'), '<Project><ItemGroup><PackageReference Include="Newtonsoft.Json" Version="13" /></ItemGroup></Project>');
 const enumerated = enumerateRepoDeps(dir, false);
-assert.deepEqual(enumerated.map(d => `${d.ecosystem}:${d.name}`).sort(), ['npm:esbuild', 'npm:zod', 'pypi:flask', 'pypi:requests']);
+assert.deepEqual(enumerated.map(d => `${d.ecosystem}:${d.name}`).sort(), ['npm:esbuild', 'npm:zod', 'nuget:Newtonsoft.Json', 'pypi:flask', 'pypi:requests']);
 
 console.log('audit-deps tests passed');

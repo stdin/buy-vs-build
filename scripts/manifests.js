@@ -6,9 +6,7 @@
 // extraction, not full TOML/YAML parsing: a complete parser would be a dependency
 // we'd then own, which is exactly what this project argues against (built-in /
 // tiny-clear-code over a library for a small, stable need). Unknown or malformed
-// input yields [] — these helpers never throw. Maven (pom.xml) and NuGet
-// (.csproj) are XML and intentionally left out until a name-only XML reader earns
-// its keep; deps.dev already covers those ecosystems for the research helper.
+// input yields [] — these helpers never throw.
 'use strict';
 
 // PEP 503 normalization so "Flask_Foo", "flask.foo", and "flask-foo" compare equal.
@@ -32,12 +30,31 @@ function parsePackageJson(text) {
   return Object.keys(merged).map(name => ({ ecosystem: 'npm', name }));
 }
 
+function parsePackageLock(text) {
+  let lock;
+  try { lock = JSON.parse(text); } catch (_error) { return []; }
+  const rootPackage = lock && lock.packages && lock.packages[''];
+  if (rootPackage && typeof rootPackage === 'object') {
+    const merged = Object.assign(
+      {},
+      rootPackage.dependencies,
+      rootPackage.devDependencies,
+      rootPackage.optionalDependencies,
+      rootPackage.peerDependencies
+    );
+    return Object.keys(merged).map(name => ({ ecosystem: 'npm', name }));
+  }
+  return [];
+}
+
 function parseRequirementsTxt(text) {
   const out = [];
   for (const raw of String(text).split(/\r?\n/)) {
     const line = raw.trim();
-    if (!line || line.startsWith('#') || line.startsWith('-')) continue; // skip -r/-e/--hash flags
-    const name = requirementName(line);
+    if (!line || line.startsWith('#')) continue;
+    if (/^--?/.test(line) && !/^-[ec]\s+/.test(line)) continue; // skip -r/--hash/etc.
+    const editable = line.match(/^-[ec]\s+.+?#egg=([A-Za-z0-9._-]+)/);
+    const name = editable ? normalizePypi(editable[1]) : requirementName(line);
     if (name) out.push({ ecosystem: 'pypi', name });
   }
   return out;
@@ -109,6 +126,7 @@ function parseGoMod(text) {
 
 function parseCargo(text) {
   const names = new Set();
+  const aliases = new Map();
   let inDepsTable = false;
   const DEPS_TABLE = /(?:^|\.)(?:dev-|build-)?dependencies$/;
   const DEPS_SUBTABLE = /(?:^|\.)(?:dev-|build-)?dependencies\.([A-Za-z0-9._+-]+)$/;
@@ -125,9 +143,14 @@ function parseCargo(text) {
     }
     if (inDepsTable) {
       const m = line.match(/^([A-Za-z0-9._+-]+)\s*=/);
-      if (m) names.add(m[1]);
+      if (m) {
+        const packageName = line.match(/\bpackage\s*=\s*["']([^"']+)["']/);
+        if (packageName) aliases.set(m[1], packageName[1]);
+        else names.add(m[1]);
+      }
     }
   }
+  for (const actual of aliases.values()) names.add(actual);
   return [...names].map(name => ({ ecosystem: 'cargo', name }));
 }
 
@@ -142,14 +165,46 @@ function parseGemfile(text) {
   return out;
 }
 
+function unescapeXml(text) {
+  return String(text)
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&');
+}
+
+function parsePomXml(text) {
+  const out = [];
+  const body = String(text).replace(/<dependencyManagement\b[\s\S]*?<\/dependencyManagement>/gi, '');
+  for (const dep of body.matchAll(/<dependency\b[\s\S]*?<\/dependency>/gi)) {
+    const chunk = dep[0];
+    const group = chunk.match(/<groupId>\s*([^<]+?)\s*<\/groupId>/i);
+    const artifact = chunk.match(/<artifactId>\s*([^<]+?)\s*<\/artifactId>/i);
+    if (group && artifact) out.push({ ecosystem: 'maven', name: `${unescapeXml(group[1])}:${unescapeXml(artifact[1])}` });
+  }
+  return out;
+}
+
+function parseDotnetProject(text) {
+  const out = [];
+  for (const ref of String(text).matchAll(/<PackageReference\b[^>]*(?:Include|Update)\s*=\s*["']([^"']+)["'][^>]*>/gi)) {
+    out.push({ ecosystem: 'nuget', name: unescapeXml(ref[1]) });
+  }
+  return out;
+}
+
 // filename (basename) -> parser
 const MANIFESTS = {
   'package.json': parsePackageJson,
+  'package-lock.json': parsePackageLock,
+  'npm-shrinkwrap.json': parsePackageLock,
   'requirements.txt': parseRequirementsTxt,
   'pyproject.toml': parsePyproject,
   'go.mod': parseGoMod,
   'Cargo.toml': parseCargo,
-  'Gemfile': parseGemfile
+  'Gemfile': parseGemfile,
+  'pom.xml': parsePomXml
 };
 
 function basename(file) {
@@ -157,7 +212,9 @@ function basename(file) {
 }
 
 function manifestParserFor(file) {
-  return MANIFESTS[basename(file)] || null;
+  const base = basename(file);
+  if (/\.(csproj|fsproj|vbproj)$/i.test(base)) return parseDotnetProject;
+  return MANIFESTS[base] || null;
 }
 
 function isManifest(file) {
@@ -195,11 +252,14 @@ module.exports = {
   normalizePypi,
   requirementName,
   parsePackageJson,
+  parsePackageLock,
   parseRequirementsTxt,
   parsePyproject,
   parseGoMod,
   parseCargo,
   parseGemfile,
+  parsePomXml,
+  parseDotnetProject,
   MANIFESTS,
   basename,
   manifestParserFor,
