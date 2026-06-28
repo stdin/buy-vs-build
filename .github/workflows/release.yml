@@ -63,6 +63,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="v${{ steps.ver.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "$VERSION" -m "$VERSION"
           git push origin "$VERSION"
           if [ "$USE_NOTES_FILE" = "true" ]; then
