@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { assessBehaviorThresholds, formatBehaviorThresholdFailures } = require('./behavior-thresholds');
 
 const root = path.resolve(__dirname, '..');
 const casesPath = path.join(root, 'benchmarks', 'behavior-cases.json');
@@ -10,8 +11,14 @@ const outputDir = path.join(root, 'benchmarks', 'results');
 const cases = JSON.parse(fs.readFileSync(casesPath, 'utf8')).cases;
 const selectedIds = getArgValues('--case');
 const limit = Number(getArgValue('--limit') || cases.length);
+const thresholds = {
+  minDelta: getArgValue('--min-delta'),
+  minEnabledScore: getArgValue('--min-enabled-score'),
+  minEnabledRungHits: getArgValue('--min-enabled-rung-hits')
+};
 const dryRun = process.argv.includes('--dry-run');
 const keepPluginState = process.argv.includes('--keep-plugin-state');
+const writeResults = !process.argv.includes('--no-write');
 const runId = new Date().toISOString().replace(/[:.]/g, '-');
 const runCases = cases.filter(item => selectedIds.length === 0 || selectedIds.includes(item.id)).slice(0, limit);
 
@@ -19,7 +26,7 @@ if (runCases.length === 0) {
   throw new Error('No benchmark cases selected.');
 }
 
-fs.mkdirSync(outputDir, { recursive: true });
+if (writeResults) fs.mkdirSync(outputDir, { recursive: true });
 
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'buy-vs-build-bench-'));
 fs.writeFileSync(path.join(tempRoot, 'README.md'), '# Empty benchmark workspace\n', 'utf8');
@@ -71,17 +78,26 @@ try {
   if (!dryRun && !keepPluginState) {
     installPlugin();
   }
+  fs.rmSync(tempRoot, { recursive: true, force: true });
 }
 
 result.summary = summarize(result.cases);
 const jsonPath = path.join(outputDir, `behavior-${runId}.json`);
 const mdPath = path.join(outputDir, `behavior-${runId}.md`);
-fs.writeFileSync(jsonPath, JSON.stringify(result, null, 2) + '\n');
-fs.writeFileSync(mdPath, renderMarkdown(result));
-
-console.log(`Wrote ${jsonPath}`);
-console.log(`Wrote ${mdPath}`);
+if (writeResults) {
+  fs.writeFileSync(jsonPath, JSON.stringify(result, null, 2) + '\n');
+  fs.writeFileSync(mdPath, renderMarkdown(result));
+  console.log(`Wrote ${jsonPath}`);
+  console.log(`Wrote ${mdPath}`);
+} else {
+  console.log('Result writing disabled by --no-write.');
+}
 console.log(renderSummary(result.summary));
+const thresholdFailures = assessBehaviorThresholds(result.summary, thresholds);
+if (thresholdFailures.length) {
+  console.error(formatBehaviorThresholdFailures(thresholdFailures));
+  process.exitCode = 1;
+}
 
 function getArgValue(name) {
   const index = process.argv.indexOf(name);

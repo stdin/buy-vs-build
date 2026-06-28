@@ -6,7 +6,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node scripts/sync.js --check && node scripts/check-rule-copies.js && node tests/buy-vs-build.test.js && node tests/benchmark.test.js && node tests/agent-files.test.js && node tests/skills.test.js && node tests/opencode.test.mjs && node tests/version.test.js && node tests/marketplace.test.js && node tests/live-benchmark-harness.test.js && node tests/judge.test.js && node tests/config.test.js && node tests/adr.test.js && node tests/pr-review.test.js && node tests/dependency-report.test.js && node tests/manifests.test.js && node tests/license-compat.test.js && node tests/audit-deps.test.js && node tests/revisit.test.js && node tests/extract-changelog.test.js",
+    "test": "node scripts/sync.js --check && node scripts/check-rule-copies.js && node --test && npm run benchmark:behavior:gate",
     "sync": "node scripts/sync.js",
     "record-decision": "node scripts/record-decision.js",
     "pr-review": "node scripts/pr-review.js",
@@ -18,6 +18,7 @@
     "benchmark": "node scripts/benchmark.js",
     "benchmark:behavior": "node scripts/run-behavior-benchmark.js",
     "benchmark:behavior:dry": "node scripts/run-behavior-benchmark.js --dry-run",
+    "benchmark:behavior:gate": "node scripts/run-behavior-benchmark.js --dry-run --no-write --min-delta 1 --min-enabled-score 50 --min-enabled-rung-hits 12",
     "benchmark:behavior:claude": "node scripts/run-behavior-benchmark-claude.js",
     "benchmark:behavior:claude:dry": "node scripts/run-behavior-benchmark-claude.js --dry-run",
     "benchmark:behavior:claude:judge": "node scripts/run-behavior-benchmark-claude.js --judge"

@@ -13,6 +13,9 @@ assert.match(script, /'exec'/);
 assert.match(script, /--sandbox/);
 assert.match(script, /read-only/);
 assert.match(script, /scoreResponse/);
+assert.match(script, /--min-delta/);
+assert.match(script, /--no-write/);
+assert.match(script, /assessBehaviorThresholds/);
 assert.ok(cases.cases.length >= 6);
 
 console.log('live benchmark harness tests passed');
