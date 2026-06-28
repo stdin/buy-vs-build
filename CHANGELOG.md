@@ -12,6 +12,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   thresholds, included in `npm test`.
 - Dependency manifest extraction for root npm lockfiles, Maven `pom.xml`, NuGet
   project files, editable Python requirements, and Cargo package aliases.
+- `buy-vs-build init` CLI for installing `AGENTS.md`, `.buyvsbuild.json`, and
+  the GitHub dependency-review workflow into another repository.
+- Reusable GitHub Action at `.github/actions/dependency-review`.
+- Distribution docs with launch messaging and an example dependency-review PR
+  comment.
 
 ### Changed
 
