@@ -1,5 +1,5 @@
 # Release Rules
-<!-- last-analyzed: 2026-06-19T07:21:58Z -->
+<!-- last-analyzed: 2026-06-28T15:15:00Z -->
 
 ## Version Sources
 
@@ -26,9 +26,11 @@
 
 ## Registry / Distribution
 
-- No package registry publish is configured.
-- `package.json` has `"private": true`, so npm publish is intentionally disabled.
-- Distribution is currently via GitHub repository, tags, and GitHub Releases.
+- No package registry publish is configured in CI.
+- `package.json` is npm-publishable and exposes the `buy-vs-build` bin, but the
+  automated release workflow currently creates only GitHub tags/releases.
+- Distribution is currently via GitHub repository, tags, GitHub Releases, and
+  npm package metadata ready for a separate manual/CI publish step.
 
 ## Release Notes Strategy
 
@@ -38,10 +40,10 @@
 
 ## CI Workflow Files
 
-- None detected.
+- `.github/workflows/ci.yml`
+- `.github/workflows/release.yml`
+- `.github/workflows/buy-vs-build-review.yml`
 
 ## First-Time Setup Gaps
 
-- No release workflow is present.
-- No existing git tags were detected before `v0.1.0`.
-- No `.gitignore` is present.
+- npm publishing is not wired into release CI yet.
