@@ -1,7 +1,36 @@
 {
   "name": "buy-vs-build",
   "version": "0.3.0",
-  "private": true,
+  "description": "Buy-before-build guardrails for AI coding agents.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stdin/buy-vs-build.git"
+  },
+  "keywords": [
+    "ai-agents",
+    "codex",
+    "claude-code",
+    "github-actions",
+    "dependencies",
+    "software-supply-chain",
+    "agents-md"
+  ],
+  "bin": {
+    "buy-vs-build": "bin/buy-vs-build.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "AGENTS.md",
+    "bin/",
+    "hooks/",
+    "rules/",
+    "scripts/",
+    "skills/",
+    ".github/actions/dependency-review/"
+  ],
   "engines": {
     "node": ">=20"
   },

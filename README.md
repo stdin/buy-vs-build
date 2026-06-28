@@ -50,6 +50,27 @@ Each one is a bill that arrives later: a migration, an incident, an audit findin
 
 The three that matter most: **it picks the right tool for the job, it researches dependencies before you own them, and it works across every agent you use** — the same rule ships to Codex, Claude Code, Gemini, Cursor, GitHub Copilot, and more.
 
+## Quick Start
+
+Install the agent rule and optional PR dependency check in any repository:
+
+```bash
+npx buy-vs-build init
+```
+
+That writes:
+
+- `AGENTS.md` with the buy-before-build rule for agent hosts that read it.
+- `.buyvsbuild.json` so the project can tune strictness and ownership priorities.
+- `.github/workflows/buy-vs-build-review.yml`, which comments on new dependencies
+  that lack a decision note and fails CI when `.buyvsbuild.json` is `strict`.
+
+For instruction-only setup without the GitHub Action:
+
+```bash
+npx buy-vs-build init --agents-only
+```
+
 ## Decide First: Core vs Context
 
 The ladder below tells you *how far to reach for reuse*. Two questions decide *whether to reuse at all*:
@@ -145,6 +166,38 @@ This repo ships the same rule through the files each host already knows how to r
 The hook files are included for hosts that support lifecycle injection. Hosts that only read instruction files still get the rule, just without startup fanfare.
 
 ## Install
+
+### GitHub Action
+
+Add the dependency review check directly:
+
+```yaml
+name: Buy vs Build PR Review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+      - uses: stdin/buy-vs-build/.github/actions/dependency-review@main
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          GITHUB_TOKEN: ${{ github.token }}
+```
 
 ### Codex
 
