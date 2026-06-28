@@ -8,7 +8,8 @@ const {
   assessNpmRegistry,
   buildView,
   summarize,
-  formatReport
+  formatReport,
+  describeFetchFailure
 } = require('../scripts/dependency-report');
 
 // Covers all major ecosystems, not just npm.
@@ -91,5 +92,8 @@ const report = formatReport('demo', 'pypi', pyView);
 assert.match(report, /^# Dependency report: demo \(pypi\)/m);
 assert.match(report, /## Verdict/);
 assert.match(report, /any ecosystem/);
+assert.equal(describeFetchFailure('deps.dev package lookup', { status: 404 }), 'deps.dev package lookup: package not found');
+assert.equal(describeFetchFailure('OSV lookup', { status: 429 }), 'OSV lookup: rate limited');
+assert.equal(describeFetchFailure('npm registry', { status: 0, reason: 'fetch failed' }), 'npm registry: fetch failed');
 
 console.log('dependency-report tests passed');

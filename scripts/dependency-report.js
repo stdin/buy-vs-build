@@ -179,11 +179,20 @@ function formatReport(name, ecosystem, view) {
 async function getJson(url, options) {
   try {
     const res = await fetch(url, options);
-    if (!res.ok) return { ok: false, status: res.status };
+    if (!res.ok) return { ok: false, status: res.status, reason: `HTTP ${res.status}` };
     return { ok: true, status: res.status, body: await res.json() };
-  } catch (_error) {
-    return { ok: false, status: 0 };
+  } catch (error) {
+    return { ok: false, status: 0, reason: error && error.message ? error.message : 'network error' };
   }
+}
+
+function describeFetchFailure(source, response) {
+  if (!response) return `${source}: no response`;
+  if (response.status === 404) return `${source}: package not found`;
+  if (response.status === 429) return `${source}: rate limited`;
+  if (response.status >= 500) return `${source}: service unavailable (${response.status})`;
+  if (response.status === 0) return `${source}: ${response.reason || 'network error'}`;
+  return `${source}: ${response.reason || `HTTP ${response.status}`}`;
 }
 
 async function gatherSignals(pkg, ecosystem) {
@@ -192,7 +201,13 @@ async function gatherSignals(pkg, ecosystem) {
   const enc = encodeURIComponent(pkg);
 
   const pkgResp = await getJson(`https://api.deps.dev/v3/systems/${sys.depsdev}/packages/${enc}`);
+  if (!pkgResp.ok) {
+    return { found: false, reason: describeFetchFailure('deps.dev package lookup', pkgResp) };
+  }
   const depsPkg = pkgResp.ok ? assessDepsDevPackage(pkgResp.body) : null;
+  if (!depsPkg) {
+    return { found: false, reason: 'deps.dev package lookup: unrecognized response' };
+  }
 
   let depsVer = null;
   if (depsPkg && depsPkg.latest) {
@@ -237,9 +252,9 @@ async function main() {
     console.error(`Unknown ecosystem "${ecosystem}". One of: ${Object.keys(SYSTEMS).join(', ')}`);
     process.exit(1);
   }
-  const { found, view } = await gatherSignals(pkg, ecosystem);
+  const { found, view, reason } = await gatherSignals(pkg, ecosystem);
   if (!found) {
-    console.error(`Could not find "${pkg}" in ${ecosystem} via deps.dev.`);
+    console.error(`Could not resolve "${pkg}" in ${ecosystem}: ${reason || 'unknown error'}`);
     process.exit(1);
   }
   console.log(formatReport(pkg, ecosystem, view));
@@ -266,5 +281,7 @@ module.exports = {
   buildView,
   summarize,
   formatReport,
+  getJson,
+  describeFetchFailure,
   gatherSignals
 };
