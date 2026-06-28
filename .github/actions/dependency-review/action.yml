@@ -1,0 +1,5 @@
+name: Buy vs Build Dependency Review
+description: Flag new dependencies without a buy-vs-build decision note.
+runs:
+  using: node20
+  main: index.js
